@@ -68,10 +68,10 @@ export default function Auth() {
             <Mail className="h-6 w-6 text-primary-foreground" strokeWidth={2} />
           </div>
           <h1 className="text-xl font-semibold text-foreground tracking-tight">
-            {isSignUp ? "Create your account" : "Sign in to Mail"}
+            {isSignUp ? "Create your account" : "Sign in to mailBOXFORD"}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {isSignUp ? "Get started with your email" : "Welcome back"}
+            {isSignUp ? "Get started with smart email" : "Welcome back"}
           </p>
         </div>
 

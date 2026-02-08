@@ -2,6 +2,7 @@ import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon } from "lucid
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
 import { useLabels } from "@/hooks/useLabels";
+import { useAIEmail } from "@/hooks/useAIEmail";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmailSidebar } from "@/components/email/EmailSidebar";
 import { EmailList } from "@/components/email/EmailList";
@@ -10,7 +11,7 @@ import { ComposeDialog } from "@/components/email/ComposeDialog";
 import { SearchBar } from "@/components/email/SearchBar";
 import { SettingsPanel } from "@/components/email/SettingsPanel";
 import { useTheme } from "@/hooks/useTheme";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -19,11 +20,20 @@ const Index = () => {
     setSearch, handleSelect, clearSelection, handleToggleStar, handleFolderChange, sendEmail,
   } = useEmails();
   const labelCtx = useLabels();
+  const aiCtx = useAIEmail();
   const [composeOpen, setComposeOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
+
+  // Auto-detect buying signals when inbox emails load
+  useEffect(() => {
+    if (activeFolder === "inbox" && emails.length > 0 && !aiCtx.categorizing) {
+      aiCtx.detectBuyingSignals(emails);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFolder, emails.length]);
 
   const initials = user?.user_metadata?.display_name
     ? user.user_metadata.display_name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -127,6 +137,7 @@ const Index = () => {
             loading={loading}
             fullWidth={isMobile}
             labelCtx={labelCtx}
+            buyingSignals={activeFolder === "inbox" ? aiCtx.buyingSignals : {}}
           />
         )}
 
@@ -136,12 +147,14 @@ const Index = () => {
             onToggleStar={handleToggleStar}
             onBack={clearSelection}
             labelCtx={labelCtx}
+            aiCtx={aiCtx}
           />
         ) : !isMobile ? (
           <EmailReader
             email={selectedEmail}
             onToggleStar={handleToggleStar}
             labelCtx={labelCtx}
+            aiCtx={aiCtx}
           />
         ) : null}
       </div>
@@ -150,6 +163,7 @@ const Index = () => {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         onSend={sendEmail}
+        aiCtx={aiCtx}
       />
 
       <SettingsPanel

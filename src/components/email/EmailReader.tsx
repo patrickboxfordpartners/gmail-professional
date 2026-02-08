@@ -1,5 +1,7 @@
 import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
 import type { Email } from "@/hooks/useEmails";
+import type { useLabels } from "@/hooks/useLabels";
+import { LabelBadge, LabelPicker } from "./LabelComponents";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string): string {
@@ -19,9 +21,10 @@ interface EmailReaderProps {
   email: Email | null;
   onToggleStar: (id: string) => void;
   onBack?: () => void;
+  labelCtx?: ReturnType<typeof useLabels>;
 }
 
-export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, labelCtx }: EmailReaderProps) {
   if (!email) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -35,6 +38,9 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
       </div>
     );
   }
+
+  const emailLabels = labelCtx?.getLabelsForEmail(email.id) || [];
+  const activeIds = labelCtx?.emailLabelMap[email.id] || [];
 
   return (
     <div className="flex-1 flex flex-col h-full animate-fade-in bg-background">
@@ -54,6 +60,17 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
           <Forward className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
         </button>
         <div className="flex-1" />
+        {labelCtx && (
+          <LabelPicker
+            emailId={email.id}
+            labels={labelCtx.labels}
+            activeIds={activeIds}
+            onToggle={labelCtx.toggleEmailLabel}
+            onCreate={labelCtx.createLabel}
+            onDelete={labelCtx.deleteLabel}
+            defaultColors={labelCtx.DEFAULT_COLORS}
+          />
+        )}
         <button
           onClick={() => onToggleStar(email.id)}
           className="p-2 rounded-md hover:bg-secondary transition-all duration-150"
@@ -67,7 +84,20 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
 
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-8 py-6">
-          <h1 className="text-lg font-semibold text-foreground tracking-tight mb-6">{email.subject}</h1>
+          <h1 className="text-lg font-semibold text-foreground tracking-tight mb-2">{email.subject}</h1>
+
+          {emailLabels.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-5">
+              {emailLabels.map((l) => (
+                <LabelBadge
+                  key={l.id}
+                  label={l}
+                  size="md"
+                  onRemove={() => labelCtx?.toggleEmailLabel(email.id, l.id)}
+                />
+              ))}
+            </div>
+          )}
 
           <div className="flex items-start gap-3.5 mb-8">
             <div className="h-10 w-10 rounded-full bg-avatar flex items-center justify-center shrink-0 shadow-stripe-sm">

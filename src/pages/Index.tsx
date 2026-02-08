@@ -1,6 +1,7 @@
 import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
+import { useLabels } from "@/hooks/useLabels";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmailSidebar } from "@/components/email/EmailSidebar";
 import { EmailList } from "@/components/email/EmailList";
@@ -17,6 +18,7 @@ const Index = () => {
     emails, selectedEmail, selectedId, activeFolder, search, loading, folderCounts,
     setSearch, handleSelect, clearSelection, handleToggleStar, handleFolderChange, sendEmail,
   } = useEmails();
+  const labelCtx = useLabels();
   const [composeOpen, setComposeOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -27,7 +29,6 @@ const Index = () => {
     ? user.user_metadata.display_name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
     : (user?.email?.slice(0, 2).toUpperCase() || "ME");
 
-  // Mobile: show reader if email selected, otherwise show list
   const showReader = isMobile && selectedId;
   const showList = !isMobile || !selectedId;
 
@@ -38,7 +39,6 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
-      {/* Header */}
       <header className="flex items-center h-[52px] px-3 md:px-5 border-b border-divider bg-card shrink-0">
         {isMobile && (
           <button
@@ -95,7 +95,6 @@ const Index = () => {
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Mobile sidebar overlay */}
         {isMobile && sidebarOpen && (
           <div
             className="absolute inset-0 bg-foreground/20 z-30 animate-fade-in"
@@ -103,7 +102,6 @@ const Index = () => {
           />
         )}
 
-        {/* Sidebar */}
         <div
           className={
             isMobile
@@ -119,7 +117,6 @@ const Index = () => {
           />
         </div>
 
-        {/* Email list */}
         {showList && (
           <EmailList
             emails={emails}
@@ -129,20 +126,22 @@ const Index = () => {
             folderName={activeFolder}
             loading={loading}
             fullWidth={isMobile}
+            labelCtx={labelCtx}
           />
         )}
 
-        {/* Reader — full width on mobile, flex on desktop */}
         {showReader ? (
           <EmailReader
             email={selectedEmail}
             onToggleStar={handleToggleStar}
             onBack={clearSelection}
+            labelCtx={labelCtx}
           />
         ) : !isMobile ? (
           <EmailReader
             email={selectedEmail}
             onToggleStar={handleToggleStar}
+            labelCtx={labelCtx}
           />
         ) : null}
       </div>

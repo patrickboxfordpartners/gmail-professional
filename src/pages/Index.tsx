@@ -1,4 +1,4 @@
-import { Mail, Settings, HelpCircle, Bell, LogOut, Menu } from "lucide-react";
+import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,6 +7,7 @@ import { EmailList } from "@/components/email/EmailList";
 import { EmailReader } from "@/components/email/EmailReader";
 import { ComposeDialog } from "@/components/email/ComposeDialog";
 import { SearchBar } from "@/components/email/SearchBar";
+import { useTheme } from "@/hooks/useTheme";
 import { useState } from "react";
 
 const Index = () => {
@@ -17,6 +18,7 @@ const Index = () => {
   } = useEmails();
   const [composeOpen, setComposeOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
   const initials = user?.user_metadata?.display_name
@@ -62,6 +64,16 @@ const Index = () => {
           </button>
           <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block">
             <Settings className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group"
+            title={dark ? "Light mode" : "Dark mode"}
+          >
+            {dark
+              ? <Sun className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+              : <Moon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+            }
           </button>
           <button
             onClick={signOut}

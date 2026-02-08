@@ -14,13 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      emails: {
+        Row: {
+          body: string
+          created_at: string
+          folder: string
+          has_attachment: boolean
+          id: string
+          labels: string[] | null
+          preview: string
+          read: boolean
+          recipient_id: string
+          sender_id: string
+          starred: boolean
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          folder?: string
+          has_attachment?: boolean
+          id?: string
+          labels?: string[] | null
+          preview?: string
+          read?: boolean
+          recipient_id: string
+          sender_id: string
+          starred?: boolean
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          folder?: string
+          has_attachment?: boolean
+          id?: string
+          labels?: string[] | null
+          preview?: string
+          read?: boolean
+          recipient_id?: string
+          sender_id?: string
+          starred?: boolean
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "emails_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_email_owner: { Args: { _email_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

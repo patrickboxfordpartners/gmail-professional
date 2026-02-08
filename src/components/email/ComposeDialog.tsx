@@ -1,21 +1,44 @@
 import { X, Minus, Maximize2, Send } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface ComposeDialogProps {
   open: boolean;
   onClose: () => void;
+  onSend: (to: string, subject: string, body: string) => Promise<void>;
 }
 
-export function ComposeDialog({ open, onClose }: ComposeDialogProps) {
+export function ComposeDialog({ open, onClose, onSend }: ComposeDialogProps) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
 
   if (!open) return null;
 
+  const handleSend = async () => {
+    if (!to) {
+      toast.error("Please enter a recipient");
+      return;
+    }
+    if (!subject) {
+      toast.error("Please enter a subject");
+      return;
+    }
+    setSending(true);
+    try {
+      await onSend(to, subject, `<p>${body.replace(/\n/g, "</p><p>")}</p>`);
+      setTo("");
+      setSubject("");
+      setBody("");
+      onClose();
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <div className="fixed bottom-0 right-6 w-[540px] bg-card border border-border rounded-t-xl shadow-stripe-lg z-50 flex flex-col animate-slide-up">
-      {/* Title bar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-foreground rounded-t-xl">
         <span className="text-[13px] font-semibold text-background tracking-tight">New Message</span>
         <div className="flex items-center gap-0.5">
@@ -31,15 +54,15 @@ export function ComposeDialog({ open, onClose }: ComposeDialogProps) {
         </div>
       </div>
 
-      {/* Fields */}
       <div>
         <div className="flex items-center border-b border-divider px-4">
           <span className="text-[12px] text-muted-foreground font-medium w-8">To</span>
           <input
-            type="text"
+            type="email"
             value={to}
             onChange={(e) => setTo(e.target.value)}
-            className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground"
+            placeholder="recipient@example.com"
+            className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40"
           />
         </div>
         <div className="flex items-center border-b border-divider px-4">
@@ -53,7 +76,6 @@ export function ComposeDialog({ open, onClose }: ComposeDialogProps) {
         </div>
       </div>
 
-      {/* Body */}
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -61,11 +83,14 @@ export function ComposeDialog({ open, onClose }: ComposeDialogProps) {
         className="flex-1 min-h-[220px] px-4 py-3 text-[13px] bg-transparent outline-none resize-none text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
       />
 
-      {/* Actions */}
       <div className="flex items-center gap-3 px-4 py-3 border-t border-divider">
-        <button className="compose-btn px-5 py-[7px] rounded-md text-[13px] font-semibold text-primary-foreground transition-all duration-200 flex items-center gap-2">
+        <button
+          onClick={handleSend}
+          disabled={sending}
+          className="compose-btn px-5 py-[7px] rounded-md text-[13px] font-semibold text-primary-foreground transition-all duration-200 flex items-center gap-2 disabled:opacity-50"
+        >
           <Send className="h-3.5 w-3.5" strokeWidth={2.5} />
-          Send
+          {sending ? "Sending..." : "Send"}
         </button>
       </div>
     </div>

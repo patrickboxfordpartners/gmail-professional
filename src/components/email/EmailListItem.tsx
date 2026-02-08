@@ -1,5 +1,5 @@
 import { Star, Paperclip } from "lucide-react";
-import type { Email } from "@/data/mockEmails";
+import type { Email } from "@/hooks/useEmails";
 import { cn } from "@/lib/utils";
 
 interface EmailListItemProps {
@@ -25,11 +25,6 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-const avatarColors = [
-  "bg-avatar",
-  "bg-accent",
-];
-
 export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: EmailListItemProps) {
   return (
     <button
@@ -40,12 +35,10 @@ export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: Ema
         !email.read && !isSelected && "bg-accent/20"
       )}
     >
-      {/* Avatar */}
       <div className="mt-0.5 h-9 w-9 rounded-full bg-avatar flex items-center justify-center shrink-0 shadow-stripe-sm">
         <span className="text-[11px] font-bold text-avatar-foreground tracking-wide">{getInitials(email.from.name)}</span>
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0 space-y-0.5">
         <div className="flex items-center gap-2">
           <span className={cn("text-[13px] truncate", !email.read ? "font-semibold text-foreground" : "font-medium text-foreground/80")}>
@@ -67,7 +60,6 @@ export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: Ema
         <p className="text-[12px] text-muted-foreground/80 truncate leading-relaxed">{email.preview}</p>
       </div>
 
-      {/* Star */}
       <button
         onClick={onToggleStar}
         className="mt-1 shrink-0 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-150 hover:bg-secondary"

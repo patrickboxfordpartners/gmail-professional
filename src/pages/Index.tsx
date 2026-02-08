@@ -7,6 +7,7 @@ import { EmailList } from "@/components/email/EmailList";
 import { EmailReader } from "@/components/email/EmailReader";
 import { ComposeDialog } from "@/components/email/ComposeDialog";
 import { SearchBar } from "@/components/email/SearchBar";
+import { SettingsPanel } from "@/components/email/SettingsPanel";
 import { useTheme } from "@/hooks/useTheme";
 import { useState } from "react";
 
@@ -18,6 +19,7 @@ const Index = () => {
   } = useEmails();
   const [composeOpen, setComposeOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
@@ -62,7 +64,11 @@ const Index = () => {
           <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block">
             <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
-          <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block">
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
+            title="Settings"
+          >
             <Settings className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
           <button
@@ -145,6 +151,11 @@ const Index = () => {
         open={composeOpen}
         onClose={() => setComposeOpen(false)}
         onSend={sendEmail}
+      />
+
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
       />
     </div>
   );

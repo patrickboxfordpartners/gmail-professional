@@ -243,7 +243,7 @@ export function MigrationPanel({ open, onClose }: MigrationPanelProps) {
                 <div className="p-3 rounded-md bg-secondary/60 border border-divider font-mono text-[11px] text-muted-foreground">
                   from,subject,body,date
                   <br />
-                  john@example.com,Hello,Hi there!,2025-01-15
+                  john@boxfordpartners.com,Hello,Hi there!,2025-01-15
                 </div>
               </div>
             </div>

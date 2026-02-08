@@ -66,7 +66,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx }: ComposeDialogPro
         <div className="flex items-center border-b border-divider px-4">
           <span className="text-[12px] text-muted-foreground font-medium w-8">To</span>
           <input type="email" value={to} onChange={(e) => setTo(e.target.value)}
-            placeholder="recipient@example.com"
+            placeholder="recipient@boxfordpartners.com"
             className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
         </div>
         <div className="flex items-center border-b border-divider px-4">

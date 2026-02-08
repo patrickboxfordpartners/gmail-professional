@@ -118,22 +118,19 @@ async function importEml(supabase: any, userId: string, text: string): Promise<n
 async function importMbox(supabase: any, userId: string, text: string): Promise<number> {
   // Split by "From " at start of line (mbox format)
   const messages = text.split(/^From /m).filter((m) => m.trim().length > 0);
-  let count = 0;
+  const parsed: { from: string; subject: string; body: string; date: string }[] = [];
 
   for (const msg of messages) {
     try {
-      // Re-add "From " prefix that split removed, skip the first line (envelope sender)
       const lines = msg.split("\n");
       const emlContent = lines.slice(1).join("\n");
-      const parsed = parseEml(emlContent);
-      await insertEmail(supabase, userId, parsed);
-      count++;
+      parsed.push(parseEml(emlContent));
     } catch (e) {
       console.error("Failed to parse mbox message:", e);
     }
   }
 
-  return count;
+  return await batchInsertEmails(supabase, userId, parsed);
 }
 
 // ─── CSV Parser ───────────────────────────────────────────
@@ -149,24 +146,22 @@ async function importCsv(supabase: any, userId: string, text: string): Promise<n
 
   if (subjectIdx === -1) throw new Error("CSV must have a 'subject' column");
 
-  let count = 0;
+  const parsed: { from: string; subject: string; body: string; date: string }[] = [];
   for (let i = 1; i < lines.length; i++) {
     try {
       const cols = parseCsvLine(lines[i]);
-      const parsed = {
+      parsed.push({
         from: fromIdx >= 0 ? cols[fromIdx] || "unknown@import.local" : "unknown@import.local",
         subject: cols[subjectIdx] || "(no subject)",
         body: bodyIdx >= 0 ? cols[bodyIdx] || "" : "",
         date: dateIdx >= 0 ? cols[dateIdx] || new Date().toISOString() : new Date().toISOString(),
-      };
-      await insertEmail(supabase, userId, parsed);
-      count++;
+      });
     } catch (e) {
       console.error(`Failed to parse CSV row ${i}:`, e);
     }
   }
 
-  return count;
+  return await batchInsertEmails(supabase, userId, parsed);
 }
 
 function parseCsvLine(line: string): string[] {
@@ -212,16 +207,10 @@ async function handleImapImport(supabase: any, userId: string, config: any) {
 }
 
 // ─── Insert Email Helper ──────────────────────────────────
-async function insertEmail(
-  supabase: any,
-  userId: string,
-  data: { from: string; subject: string; body: string; date: string }
-) {
-  // Ensure the sender has a profile (use userId as both sender and recipient for imported emails)
+function buildEmailRow(userId: string, data: { from: string; subject: string; body: string; date: string }) {
   const preview = data.body.replace(/<[^>]*>/g, "").slice(0, 200);
   const htmlBody = data.body.includes("<") ? data.body : `<p>${data.body.replace(/\n/g, "</p><p>")}</p>`;
-
-  const { error } = await supabase.from("emails").insert({
+  return {
     sender_id: userId,
     recipient_id: userId,
     subject: data.subject,
@@ -230,10 +219,38 @@ async function insertEmail(
     folder: "inbox",
     read: true,
     created_at: data.date || new Date().toISOString(),
-  });
+  };
+}
 
+async function insertEmail(
+  supabase: any,
+  userId: string,
+  data: { from: string; subject: string; body: string; date: string }
+) {
+  const row = buildEmailRow(userId, data);
+  const { error } = await supabase.from("emails").insert(row);
   if (error) {
     console.error("Insert email error:", error);
     throw new Error(`Failed to insert email: ${error.message}`);
   }
+}
+
+const BATCH_SIZE = 50;
+
+async function batchInsertEmails(
+  supabase: any,
+  userId: string,
+  items: { from: string; subject: string; body: string; date: string }[]
+): Promise<number> {
+  let count = 0;
+  for (let i = 0; i < items.length; i += BATCH_SIZE) {
+    const batch = items.slice(i, i + BATCH_SIZE).map((d) => buildEmailRow(userId, d));
+    const { error } = await supabase.from("emails").insert(batch);
+    if (error) {
+      console.error(`Batch insert error at offset ${i}:`, error);
+    } else {
+      count += batch.length;
+    }
+  }
+  return count;
 }

@@ -2,6 +2,7 @@ import type { Email } from "@/hooks/useEmails";
 import { EmailListItem } from "./EmailListItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface EmailListProps {
   emails: Email[];
@@ -10,11 +11,15 @@ interface EmailListProps {
   onToggleStar: (id: string) => void;
   folderName: string;
   loading?: boolean;
+  fullWidth?: boolean;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth }: EmailListProps) {
   return (
-    <div className="flex flex-col h-full border-r border-divider w-[400px] shrink-0 bg-card">
+    <div className={cn(
+      "flex flex-col h-full border-r border-divider shrink-0 bg-card",
+      fullWidth ? "w-full" : "w-[400px]"
+    )}>
       <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-divider">
         <Checkbox className="h-[14px] w-[14px] rounded-sm" />
         <ChevronDown className="h-3 w-3 text-muted-foreground -ml-0.5" />

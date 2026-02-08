@@ -1,6 +1,7 @@
 import { X, Minus, Maximize2, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ComposeDialogProps {
   open: boolean;
@@ -13,6 +14,7 @@ export function ComposeDialog({ open, onClose, onSend }: ComposeDialogProps) {
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const isMobile = useIsMobile();
 
   if (!open) return null;
 
@@ -38,16 +40,22 @@ export function ComposeDialog({ open, onClose, onSend }: ComposeDialogProps) {
   };
 
   return (
-    <div className="fixed bottom-0 right-6 w-[540px] bg-card border border-border rounded-t-xl shadow-stripe-lg z-50 flex flex-col animate-slide-up">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-foreground rounded-t-xl">
+    <div className={`fixed bottom-0 z-50 flex flex-col animate-slide-up bg-card border border-border rounded-t-xl shadow-stripe-lg ${
+      isMobile ? "left-0 right-0 w-full h-[85vh]" : "right-6 w-[540px]"
+    }`}>
+      <div className="flex items-center justify-between px-4 py-2.5 bg-foreground rounded-t-xl shrink-0">
         <span className="text-[13px] font-semibold text-background tracking-tight">New Message</span>
         <div className="flex items-center gap-0.5">
-          <button className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
-            <Minus className="h-3.5 w-3.5 text-background/80" strokeWidth={2} />
-          </button>
-          <button className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
-            <Maximize2 className="h-3 w-3 text-background/80" strokeWidth={2} />
-          </button>
+          {!isMobile && (
+            <>
+              <button className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
+                <Minus className="h-3.5 w-3.5 text-background/80" strokeWidth={2} />
+              </button>
+              <button className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
+                <Maximize2 className="h-3 w-3 text-background/80" strokeWidth={2} />
+              </button>
+            </>
+          )}
           <button onClick={onClose} className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
             <X className="h-3.5 w-3.5 text-background/80" strokeWidth={2} />
           </button>
@@ -80,10 +88,10 @@ export function ComposeDialog({ open, onClose, onSend }: ComposeDialogProps) {
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder="Write your message..."
-        className="flex-1 min-h-[220px] px-4 py-3 text-[13px] bg-transparent outline-none resize-none text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
+        className="flex-1 min-h-[120px] px-4 py-3 text-[13px] bg-transparent outline-none resize-none text-foreground placeholder:text-muted-foreground/60 leading-relaxed"
       />
 
-      <div className="flex items-center gap-3 px-4 py-3 border-t border-divider">
+      <div className="flex items-center gap-3 px-4 py-3 border-t border-divider shrink-0">
         <button
           onClick={handleSend}
           disabled={sending}

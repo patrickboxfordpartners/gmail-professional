@@ -52,7 +52,7 @@ const Index = () => {
           <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
             <Mail className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={2.5} />
           </div>
-          <span className="text-[15px] font-semibold text-foreground tracking-tight hidden sm:inline">Mail</span>
+          <span className="text-[15px] font-semibold text-foreground tracking-tight hidden sm:inline">mailBOXFORD</span>
         </div>
 
         <SearchBar value={search} onChange={setSearch} />

@@ -4,56 +4,59 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 210 11% 15%;
+    --background: 0 0% 99%;
+    --foreground: 220 20% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 210 11% 15%;
+    --card-foreground: 220 20% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 210 11% 15%;
+    --popover-foreground: 220 20% 14%;
 
-    --primary: 207 90% 41%;
+    --primary: 213 80% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 16% 96%;
-    --secondary-foreground: 210 11% 15%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 20% 14%;
 
-    --muted: 210 14% 95%;
-    --muted-foreground: 210 8% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 207 90% 96%;
-    --accent-foreground: 207 90% 35%;
+    --accent: 213 80% 96%;
+    --accent-foreground: 213 80% 42%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 207 90% 41%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 213 80% 50%;
 
-    --radius: 0.375rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 210 17% 98%;
-    --sidebar-foreground: 210 11% 30%;
-    --sidebar-primary: 207 90% 41%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 12% 38%;
+    --sidebar-primary: 213 80% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 207 90% 96%;
-    --sidebar-accent-foreground: 207 90% 35%;
-    --sidebar-border: 214 20% 92%;
-    --sidebar-ring: 207 90% 41%;
+    --sidebar-accent: 213 80% 96%;
+    --sidebar-accent-foreground: 213 80% 42%;
+    --sidebar-border: 220 13% 93%;
+    --sidebar-ring: 213 80% 50%;
 
     /* Custom tokens */
-    --email-hover: 210 20% 97%;
-    --email-selected: 207 90% 96%;
-    --email-unread: 207 90% 41%;
+    --email-hover: 220 20% 97.5%;
+    --email-selected: 213 80% 97%;
+    --email-unread: 213 80% 50%;
     --star-active: 45 93% 47%;
-    --compose-gradient-from: 207 90% 41%;
-    --compose-gradient-to: 207 80% 50%;
-    --avatar-bg: 207 60% 90%;
-    --avatar-fg: 207 90% 35%;
-    --toolbar-bg: 210 17% 98%;
-    --divider: 214 20% 92%;
+    --compose-gradient-from: 213 80% 50%;
+    --compose-gradient-to: 230 70% 56%;
+    --avatar-bg: 213 50% 93%;
+    --avatar-fg: 213 80% 38%;
+    --toolbar-bg: 0 0% 100%;
+    --divider: 220 13% 93%;
+    --shadow-sm: 0 1px 2px 0 hsl(220 20% 14% / 0.04);
+    --shadow-md: 0 4px 12px -2px hsl(220 20% 14% / 0.08), 0 1px 2px -1px hsl(220 20% 14% / 0.04);
+    --shadow-lg: 0 12px 28px -6px hsl(220 20% 14% / 0.1), 0 2px 6px -2px hsl(220 20% 14% / 0.06);
   }
 
   .dark {
@@ -63,37 +66,40 @@
     --card-foreground: 210 20% 92%;
     --popover: 222 18% 12%;
     --popover-foreground: 210 20% 92%;
-    --primary: 207 90% 54%;
+    --primary: 213 80% 56%;
     --primary-foreground: 0 0% 100%;
     --secondary: 222 14% 16%;
     --secondary-foreground: 210 20% 92%;
     --muted: 222 14% 18%;
     --muted-foreground: 210 10% 60%;
-    --accent: 207 40% 18%;
-    --accent-foreground: 207 90% 70%;
+    --accent: 213 40% 18%;
+    --accent-foreground: 213 80% 70%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 210 40% 98%;
     --border: 222 14% 20%;
     --input: 222 14% 20%;
-    --ring: 207 90% 54%;
+    --ring: 213 80% 56%;
     --sidebar-background: 222 18% 10%;
     --sidebar-foreground: 210 14% 75%;
-    --sidebar-primary: 207 90% 54%;
+    --sidebar-primary: 213 80% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 207 40% 16%;
-    --sidebar-accent-foreground: 207 90% 70%;
+    --sidebar-accent: 213 40% 16%;
+    --sidebar-accent-foreground: 213 80% 70%;
     --sidebar-border: 222 14% 18%;
-    --sidebar-ring: 207 90% 54%;
+    --sidebar-ring: 213 80% 56%;
     --email-hover: 222 14% 14%;
-    --email-selected: 207 40% 16%;
-    --email-unread: 207 90% 54%;
+    --email-selected: 213 40% 16%;
+    --email-unread: 213 80% 56%;
     --star-active: 45 93% 47%;
-    --compose-gradient-from: 207 90% 48%;
-    --compose-gradient-to: 207 80% 58%;
-    --avatar-bg: 207 30% 20%;
-    --avatar-fg: 207 90% 70%;
+    --compose-gradient-from: 213 80% 50%;
+    --compose-gradient-to: 230 70% 52%;
+    --avatar-bg: 213 30% 20%;
+    --avatar-fg: 213 80% 70%;
     --toolbar-bg: 222 18% 10%;
     --divider: 222 14% 18%;
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.3), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+    --shadow-lg: 0 12px 28px -6px hsl(0 0% 0% / 0.4), 0 2px 6px -2px hsl(0 0% 0% / 0.2);
   }
 }
 
@@ -103,14 +109,16 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
   .email-row-hover {
-    @apply transition-colors duration-100;
+    @apply transition-all duration-150 ease-out;
   }
   .email-row-hover:hover {
     background: hsl(var(--email-hover));
@@ -120,12 +128,28 @@
   }
   .compose-btn {
     background: linear-gradient(135deg, hsl(var(--compose-gradient-from)), hsl(var(--compose-gradient-to)));
+    box-shadow: 0 1px 3px 0 hsl(var(--compose-gradient-from) / 0.3), 0 1px 2px -1px hsl(var(--compose-gradient-from) / 0.2);
   }
   .compose-btn:hover {
-    filter: brightness(1.08);
+    filter: brightness(1.06);
+    box-shadow: 0 3px 8px 0 hsl(var(--compose-gradient-from) / 0.35), 0 1px 3px -1px hsl(var(--compose-gradient-from) / 0.25);
+    transform: translateY(-0.5px);
+  }
+  .compose-btn:active {
+    transform: translateY(0);
+    filter: brightness(0.98);
   }
   .star-active {
     color: hsl(var(--star-active));
     fill: hsl(var(--star-active));
+  }
+  .shadow-stripe-sm {
+    box-shadow: var(--shadow-sm);
+  }
+  .shadow-stripe-md {
+    box-shadow: var(--shadow-md);
+  }
+  .shadow-stripe-lg {
+    box-shadow: var(--shadow-lg);
   }
 }

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/hooks/useTheme";
 import { Navigate } from "react-router-dom";
 import {
   Mail,
@@ -12,6 +13,8 @@ import {
   Zap,
   Lock,
   BarChart3,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const features = [
@@ -54,6 +57,7 @@ const stats = [
 ];
 
 export default function Landing() {
+  const { dark, toggle } = useTheme();
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -79,7 +83,14 @@ export default function Landing() {
               mail<span className="text-primary">BOXFORD</span>
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggle}
+              className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <Link
               to="/auth"
               className="text-[13px] font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"

@@ -1,4 +1,4 @@
-import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon, Users } from "lucide-react";
+import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon, Users, Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
 import { useLabels } from "@/hooks/useLabels";
@@ -13,6 +13,7 @@ import { ComposeDialog } from "@/components/email/ComposeDialog";
 import { SearchBar } from "@/components/email/SearchBar";
 import { SettingsPanel } from "@/components/email/SettingsPanel";
 import { CRMPanel } from "@/components/email/CRMComponents";
+import { MigrationPanel } from "@/components/email/MigrationPanel";
 import { useTheme } from "@/hooks/useTheme";
 import { useState, useEffect, useCallback } from "react";
 
@@ -30,6 +31,7 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [crmOpen, setCrmOpen] = useState(false);
+  const [migrationOpen, setMigrationOpen] = useState(false);
   const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
@@ -97,6 +99,13 @@ const Index = () => {
             title="CRM"
           >
             <Users className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+          </button>
+          <button
+            onClick={() => setMigrationOpen(true)}
+            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
+            title="Import Emails"
+          >
+            <Download className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => setSettingsOpen(true)}
@@ -210,6 +219,11 @@ const Index = () => {
         onDeleteContact={crmCtx.deleteContact}
         onDeleteCompany={crmCtx.deleteCompany}
         onUpdateContact={crmCtx.updateContact}
+      />
+
+      <MigrationPanel
+        open={migrationOpen}
+        onClose={() => setMigrationOpen(false)}
       />
     </div>
   );

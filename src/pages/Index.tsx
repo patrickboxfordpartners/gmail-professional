@@ -45,6 +45,7 @@ const Index = () => {
   // Record interaction when user selects an email, and fetch body on demand
   const handleSelectWithTracking = useCallback(async (id: string) => {
     handleSelect(id);
+    aiCtx.setActiveEmail(id);
     const email = emails.find((e) => e.id === id);
     if (email) {
       noiseFilter.recordInteraction(email.from.email);
@@ -52,7 +53,7 @@ const Index = () => {
         fetchEmailBody(id);
       }
     }
-  }, [handleSelect, emails, noiseFilter, fetchEmailBody]);
+  }, [handleSelect, emails, noiseFilter, fetchEmailBody, aiCtx]);
 
   const inactiveSenders = noiseFilter.getInactiveSenders(emails);
 

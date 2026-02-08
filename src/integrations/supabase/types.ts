@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_labels: {
+        Row: {
+          email_id: string
+          id: string
+          label_id: string
+        }
+        Insert: {
+          email_id: string
+          id?: string
+          label_id: string
+        }
+        Update: {
+          email_id?: string
+          id?: string
+          label_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_labels_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_labels_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emails: {
         Row: {
           body: string
@@ -77,6 +110,30 @@ export type Database = {
           },
         ]
       }
+      labels: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -110,6 +167,7 @@ export type Database = {
     }
     Functions: {
       is_email_owner: { Args: { _email_id: string }; Returns: boolean }
+      user_owns_email: { Args: { _email_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

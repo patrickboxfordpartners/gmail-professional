@@ -1,5 +1,7 @@
 import { Star, Paperclip } from "lucide-react";
 import type { Email } from "@/hooks/useEmails";
+import type { useLabels } from "@/hooks/useLabels";
+import { LabelBadge } from "./LabelComponents";
 import { cn } from "@/lib/utils";
 
 interface EmailListItemProps {
@@ -7,6 +9,7 @@ interface EmailListItemProps {
   isSelected: boolean;
   onSelect: () => void;
   onToggleStar: (e: React.MouseEvent) => void;
+  labelCtx?: ReturnType<typeof useLabels>;
 }
 
 function formatDate(date: Date): string {
@@ -25,7 +28,9 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: EmailListItemProps) {
+export function EmailListItem({ email, isSelected, onSelect, onToggleStar, labelCtx }: EmailListItemProps) {
+  const emailLabels = labelCtx?.getLabelsForEmail(email.id) || [];
+
   return (
     <button
       onClick={onSelect}
@@ -58,6 +63,13 @@ export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: Ema
           {email.hasAttachment && <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" strokeWidth={2} />}
         </div>
         <p className="text-[12px] text-muted-foreground/80 truncate leading-relaxed">{email.preview}</p>
+        {emailLabels.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-0.5">
+            {emailLabels.map((l) => (
+              <LabelBadge key={l.id} label={l} size="sm" />
+            ))}
+          </div>
+        )}
       </div>
 
       <button

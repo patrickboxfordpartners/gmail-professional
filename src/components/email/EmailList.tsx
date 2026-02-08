@@ -1,4 +1,5 @@
 import type { Email } from "@/hooks/useEmails";
+import type { useLabels } from "@/hooks/useLabels";
 import { EmailListItem } from "./EmailListItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
@@ -12,9 +13,10 @@ interface EmailListProps {
   folderName: string;
   loading?: boolean;
   fullWidth?: boolean;
+  labelCtx?: ReturnType<typeof useLabels>;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx }: EmailListProps) {
   return (
     <div className={cn(
       "flex flex-col h-full border-r border-divider shrink-0 bg-card",
@@ -65,6 +67,7 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                 e.stopPropagation();
                 onToggleStar(email.id);
               }}
+              labelCtx={labelCtx}
             />
           ))
         )}

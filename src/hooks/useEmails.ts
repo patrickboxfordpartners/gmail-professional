@@ -130,9 +130,14 @@ export function useEmails() {
 
   const handleSelect = useCallback(async (id: string) => {
     setSelectedId(id);
+    if (!id) return; // clearing selection
     // Mark as read
     await supabase.from("emails").update({ read: true }).eq("id", id);
     setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, read: true } : e)));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedId(null);
   }, []);
 
   const handleToggleStar = useCallback(async (id: string) => {
@@ -207,6 +212,7 @@ export function useEmails() {
     folderCounts,
     setSearch,
     handleSelect,
+    clearSelection,
     handleToggleStar,
     handleFolderChange,
     sendEmail,

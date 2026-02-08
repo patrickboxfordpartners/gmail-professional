@@ -140,22 +140,58 @@ export function useEmails() {
     return data.body;
   }, []);
 
+  /** Fetch a single email with joined sender/recipient for INSERT events. */
+  const fetchSingleEmail = useCallback(async (id: string): Promise<Email | null> => {
+    const { data, error } = await supabase
+      .from("emails")
+      .select(LIST_COLUMNS)
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch single email:", error);
+      return null;
+    }
+    return mapDbEmail(data as unknown as DbEmail);
+  }, []);
+
   useEffect(() => {
     fetchEmails();
   }, [fetchEmails]);
 
-  // Realtime subscription
+  // Realtime subscription — delta updates instead of full refetch
   useEffect(() => {
     if (!user) return;
     const channel = supabase
       .channel("emails-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "emails" }, () => {
-        fetchEmails();
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "emails" }, async (payload) => {
+        const newRow = payload.new as { id: string; sender_id: string; recipient_id: string };
+        // Only care about emails involving this user
+        if (newRow.sender_id !== user.id && newRow.recipient_id !== user.id) return;
+        const email = await fetchSingleEmail(newRow.id);
+        if (email) {
+          setEmails((prev) => [email, ...prev]);
+        }
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "emails" }, (payload) => {
+        const updated = payload.new as Record<string, any>;
+        setEmails((prev) =>
+          prev.map((e) =>
+            e.id === updated.id
+              ? { ...e, read: updated.read, starred: updated.starred, folder: updated.folder, labels: updated.labels || e.labels }
+              : e
+          )
+        );
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "emails" }, (payload) => {
+        const deleted = payload.old as { id: string };
+        setEmails((prev) => prev.filter((e) => e.id !== deleted.id));
       })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user, fetchEmails]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const filteredEmails = useMemo(() => {
     let list = emails;

@@ -4,6 +4,7 @@ import { EmailListItem } from "./EmailListItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
 import { BuyingSignalHeader } from "./AIFeatures";
+import { UnsubscribeSuggestion } from "./CRMComponents";
 import { cn } from "@/lib/utils";
 
 interface EmailListProps {
@@ -16,9 +17,12 @@ interface EmailListProps {
   fullWidth?: boolean;
   labelCtx?: ReturnType<typeof useLabels>;
   buyingSignals?: Record<string, { urgency: string; reason: string }>;
+  inactiveSenders?: Set<string>;
+  onDismissSender?: (email: string) => void;
+  onKeepSender?: (email: string) => void;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {} }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender }: EmailListProps) {
   const signalIds = new Set(Object.keys(buyingSignals));
   const signalEmails = emails.filter((e) => signalIds.has(e.id));
   const otherEmails = emails.filter((e) => !signalIds.has(e.id));
@@ -82,14 +86,23 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
               </>
             )}
             {otherEmails.map((email) => (
-              <EmailListItem
-                key={email.id}
-                email={email}
-                isSelected={selectedId === email.id}
-                onSelect={() => onSelect(email.id)}
-                onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
-                labelCtx={labelCtx}
-              />
+              <div key={email.id}>
+                {inactiveSenders.has(email.from.email) && onDismissSender && onKeepSender && (
+                  <UnsubscribeSuggestion
+                    senderEmail={email.from.email}
+                    senderName={email.from.name}
+                    onDismiss={() => onDismissSender(email.from.email)}
+                    onKeep={() => onKeepSender(email.from.email)}
+                  />
+                )}
+                <EmailListItem
+                  email={email}
+                  isSelected={selectedId === email.id}
+                  onSelect={() => onSelect(email.id)}
+                  onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
+                  labelCtx={labelCtx}
+                />
+              </div>
             ))}
           </>
         )}

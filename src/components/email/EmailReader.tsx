@@ -1,10 +1,13 @@
 import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
 import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
 import type { useAIEmail } from "@/hooks/useAIEmail";
+import type { useCRM, Contact } from "@/hooks/useCRM";
 import { LabelBadge, LabelPicker } from "./LabelComponents";
 import { AISummaryPanel, SmartReplyChips } from "./AIFeatures";
+import { ContactLinker } from "./CRMComponents";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string): string {
@@ -26,9 +29,19 @@ interface EmailReaderProps {
   onBack?: () => void;
   labelCtx?: ReturnType<typeof useLabels>;
   aiCtx?: ReturnType<typeof useAIEmail>;
+  crmCtx?: ReturnType<typeof useCRM>;
 }
 
-export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
+  const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
+
+  useEffect(() => {
+    if (email && crmCtx) {
+      crmCtx.getContactsForEmail(email.id).then(setLinkedContacts);
+    } else {
+      setLinkedContacts([]);
+    }
+  }, [email?.id, crmCtx]);
   if (!email) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -73,6 +86,23 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx }: Em
             onCreate={labelCtx.createLabel}
             onDelete={labelCtx.deleteLabel}
             defaultColors={labelCtx.DEFAULT_COLORS}
+          />
+        )}
+        {crmCtx && email && (
+          <ContactLinker
+            contacts={crmCtx.contacts}
+            linkedContacts={linkedContacts}
+            emailId={email.id}
+            onLink={async (eid, cid) => {
+              await crmCtx.linkEmailToContact(eid, cid);
+              const updated = await crmCtx.getContactsForEmail(eid);
+              setLinkedContacts(updated);
+            }}
+            onUnlink={async (eid, cid) => {
+              await crmCtx.unlinkEmailFromContact(eid, cid);
+              const updated = await crmCtx.getContactsForEmail(eid);
+              setLinkedContacts(updated);
+            }}
           />
         )}
         <button

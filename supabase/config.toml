@@ -1,1 +1,7 @@
 project_id = "tztlodqhuecoqyjwulei"
+
+[functions.ai-email]
+verify_jwt = false
+
+[functions.email-migration]
+verify_jwt = false

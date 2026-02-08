@@ -153,7 +153,7 @@ export function useEmails() {
     setSelectedId(null);
   }, []);
 
-  const sendEmail = useCallback(async (to: string, subject: string, body: string) => {
+  const sendEmail = useCallback(async (to: string, subject: string, body: string, scheduledAt?: string) => {
     if (!user) return;
     // Find recipient profile
     const { data: recipientProfile } = await supabase
@@ -169,7 +169,7 @@ export function useEmails() {
 
     const preview = body.replace(/<[^>]*>/g, "").slice(0, 100);
 
-    const { error } = await supabase.from("emails").insert({
+    const insertData: Record<string, unknown> = {
       sender_id: user.id,
       recipient_id: recipientProfile.id,
       subject,
@@ -178,7 +178,13 @@ export function useEmails() {
       folder: "inbox",
       read: false,
       starred: false,
-    });
+    };
+
+    if (scheduledAt) {
+      insertData.scheduled_at = scheduledAt;
+    }
+
+    const { error } = await supabase.from("emails").insert(insertData as any);
 
     if (error) {
       toast.error("Failed to send email");
@@ -186,7 +192,6 @@ export function useEmails() {
       return;
     }
 
-    toast.success("Email sent!");
     fetchEmails();
   }, [user, fetchEmails]);
 

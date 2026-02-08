@@ -163,6 +163,111 @@ export type Database = {
           },
         ]
       }
+      email_signatures: {
+        Row: {
+          accent_color: string | null
+          company: string | null
+          created_at: string
+          custom_html: string | null
+          font_family: string | null
+          full_name: string
+          id: string
+          instagram: string | null
+          is_default: boolean
+          job_title: string | null
+          layout: string | null
+          linkedin: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          photo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          twitter: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          company?: string | null
+          created_at?: string
+          custom_html?: string | null
+          font_family?: string | null
+          full_name?: string
+          id?: string
+          instagram?: string | null
+          is_default?: boolean
+          job_title?: string | null
+          layout?: string | null
+          linkedin?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          company?: string | null
+          created_at?: string
+          custom_html?: string | null
+          font_family?: string | null
+          full_name?: string
+          id?: string
+          instagram?: string | null
+          is_default?: boolean
+          job_title?: string | null
+          layout?: string | null
+          linkedin?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          twitter?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          name: string
+          subject: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          name: string
+          subject?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       emails: {
         Row: {
           body: string
@@ -174,6 +279,7 @@ export type Database = {
           preview: string
           read: boolean
           recipient_id: string
+          scheduled_at: string | null
           sender_id: string
           starred: boolean
           subject: string
@@ -189,6 +295,7 @@ export type Database = {
           preview?: string
           read?: boolean
           recipient_id: string
+          scheduled_at?: string | null
           sender_id: string
           starred?: boolean
           subject?: string
@@ -204,6 +311,7 @@ export type Database = {
           preview?: string
           read?: boolean
           recipient_id?: string
+          scheduled_at?: string | null
           sender_id?: string
           starred?: boolean
           subject?: string

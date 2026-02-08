@@ -1,7 +1,10 @@
 import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
+import { toast } from "sonner";
 import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
+import type { useAIEmail } from "@/hooks/useAIEmail";
 import { LabelBadge, LabelPicker } from "./LabelComponents";
+import { AISummaryPanel, SmartReplyChips } from "./AIFeatures";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string): string {
@@ -22,9 +25,10 @@ interface EmailReaderProps {
   onToggleStar: (id: string) => void;
   onBack?: () => void;
   labelCtx?: ReturnType<typeof useLabels>;
+  aiCtx?: ReturnType<typeof useAIEmail>;
 }
 
-export function EmailReader({ email, onToggleStar, onBack, labelCtx }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx }: EmailReaderProps) {
   if (!email) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -127,6 +131,15 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx }: EmailRead
             </div>
           )}
 
+          {aiCtx && (
+            <AISummaryPanel
+              summary={aiCtx.summary}
+              loading={aiCtx.summarizing}
+              onRequest={() => aiCtx.summarize(email)}
+              onClear={aiCtx.clearSummary}
+            />
+          )}
+
           <div
             className="text-[14px] leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-primary/30 [&_blockquote]:bg-secondary/50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-muted-foreground [&_ul]:space-y-1.5 [&_li]:text-foreground/85 [&_p]:mb-4"
             dangerouslySetInnerHTML={{ __html: email.body }}
@@ -136,6 +149,17 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx }: EmailRead
 
       <div className="border-t border-divider p-4">
         <div className="max-w-3xl mx-auto">
+          {aiCtx && (
+            <SmartReplyChips
+              replies={aiCtx.smartReplies}
+              loading={aiCtx.replying}
+              onRequest={() => aiCtx.getSmartReplies(email)}
+              onSelect={(reply) => {
+                navigator.clipboard.writeText(reply);
+                toast.success("Reply copied to clipboard");
+              }}
+            />
+          )}
           <div className="border border-input rounded-lg px-4 py-3 text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm transition-all duration-200">
             Reply to {email.from.name}...
           </div>

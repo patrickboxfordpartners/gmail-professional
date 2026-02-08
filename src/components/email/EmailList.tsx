@@ -3,6 +3,7 @@ import type { useLabels } from "@/hooks/useLabels";
 import { EmailListItem } from "./EmailListItem";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
+import { BuyingSignalHeader } from "./AIFeatures";
 import { cn } from "@/lib/utils";
 
 interface EmailListProps {
@@ -14,9 +15,15 @@ interface EmailListProps {
   loading?: boolean;
   fullWidth?: boolean;
   labelCtx?: ReturnType<typeof useLabels>;
+  buyingSignals?: Record<string, { urgency: string; reason: string }>;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {} }: EmailListProps) {
+  const signalIds = new Set(Object.keys(buyingSignals));
+  const signalEmails = emails.filter((e) => signalIds.has(e.id));
+  const otherEmails = emails.filter((e) => !signalIds.has(e.id));
+  const hasSignals = signalEmails.length > 0;
+
   return (
     <div className={cn(
       "flex flex-col h-full border-r border-divider shrink-0 bg-card",
@@ -57,19 +64,34 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
             <p className="text-xs text-muted-foreground">Your {folderName} is empty</p>
           </div>
         ) : (
-          emails.map((email) => (
-            <EmailListItem
-              key={email.id}
-              email={email}
-              isSelected={selectedId === email.id}
-              onSelect={() => onSelect(email.id)}
-              onToggleStar={(e) => {
-                e.stopPropagation();
-                onToggleStar(email.id);
-              }}
-              labelCtx={labelCtx}
-            />
-          ))
+          <>
+            {hasSignals && (
+              <>
+                <BuyingSignalHeader />
+                {signalEmails.map((email) => (
+                  <EmailListItem
+                    key={email.id}
+                    email={email}
+                    isSelected={selectedId === email.id}
+                    onSelect={() => onSelect(email.id)}
+                    onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
+                    labelCtx={labelCtx}
+                    buyingSignal={buyingSignals[email.id]}
+                  />
+                ))}
+              </>
+            )}
+            {otherEmails.map((email) => (
+              <EmailListItem
+                key={email.id}
+                email={email}
+                isSelected={selectedId === email.id}
+                onSelect={() => onSelect(email.id)}
+                onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
+                labelCtx={labelCtx}
+              />
+            ))}
+          </>
         )}
       </div>
     </div>

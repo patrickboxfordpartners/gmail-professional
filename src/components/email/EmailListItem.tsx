@@ -13,8 +13,8 @@ function formatDate(date: Date): string {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const hours = diff / 3600000;
-  if (hours < 1) return `${Math.max(1, Math.floor(diff / 60000))}m ago`;
-  if (hours < 24) return `${Math.floor(hours)}h ago`;
+  if (hours < 1) return `${Math.max(1, Math.floor(diff / 60000))}m`;
+  if (hours < 24) return `${Math.floor(hours)}h`;
   const days = Math.floor(hours / 24);
   if (days === 1) return "Yesterday";
   if (days < 7) return date.toLocaleDateString("en-US", { weekday: "short" });
@@ -25,50 +25,60 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
+const avatarColors = [
+  "bg-avatar",
+  "bg-accent",
+];
+
 export function EmailListItem({ email, isSelected, onSelect, onToggleStar }: EmailListItemProps) {
   return (
     <button
       onClick={onSelect}
       className={cn(
-        "w-full flex items-start gap-3 px-4 py-3 text-left email-row-hover border-b border-divider",
-        isSelected && "email-selected",
-        !email.read && "bg-accent/30"
+        "w-full flex items-start gap-3 px-4 py-3.5 text-left email-row-hover group",
+        isSelected ? "email-selected border-l-2 border-l-primary" : "border-l-2 border-l-transparent",
+        !email.read && !isSelected && "bg-accent/20"
       )}
     >
       {/* Avatar */}
-      <div className="mt-0.5 h-9 w-9 rounded-full bg-avatar flex items-center justify-center shrink-0">
-        <span className="text-xs font-semibold text-avatar-foreground">{getInitials(email.from.name)}</span>
+      <div className="mt-0.5 h-9 w-9 rounded-full bg-avatar flex items-center justify-center shrink-0 shadow-stripe-sm">
+        <span className="text-[11px] font-bold text-avatar-foreground tracking-wide">{getInitials(email.from.name)}</span>
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-0.5">
         <div className="flex items-center gap-2">
-          <span className={cn("text-sm truncate", !email.read ? "font-semibold text-foreground" : "text-foreground")}>
+          <span className={cn("text-[13px] truncate", !email.read ? "font-semibold text-foreground" : "font-medium text-foreground/80")}>
             {email.from.name}
           </span>
-          <span className="ml-auto text-xs text-muted-foreground whitespace-nowrap shrink-0">
+          <span className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap shrink-0 tabular-nums">
             {formatDate(email.date)}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className={cn("text-sm truncate", !email.read ? "font-medium text-foreground" : "text-muted-foreground")}>
+          {!email.read && (
+            <span className="h-[6px] w-[6px] rounded-full bg-primary shrink-0" />
+          )}
+          <span className={cn("text-[13px] truncate", !email.read ? "font-medium text-foreground" : "text-muted-foreground")}>
             {email.subject}
           </span>
-          {email.hasAttachment && <Paperclip className="h-3.5 w-3.5 text-muted-foreground shrink-0" />}
+          {email.hasAttachment && <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" strokeWidth={2} />}
         </div>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">{email.preview}</p>
+        <p className="text-[12px] text-muted-foreground/80 truncate leading-relaxed">{email.preview}</p>
       </div>
 
       {/* Star */}
       <button
         onClick={onToggleStar}
-        className="mt-1 shrink-0 p-0.5 rounded hover:bg-secondary transition-colors"
+        className="mt-1 shrink-0 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-150 hover:bg-secondary"
+        style={{ opacity: email.starred ? 1 : undefined }}
       >
         <Star
           className={cn(
-            "h-4 w-4 transition-colors",
-            email.starred ? "star-active" : "text-muted-foreground/40 hover:text-muted-foreground"
+            "h-3.5 w-3.5 transition-all duration-200",
+            email.starred ? "star-active" : "text-muted-foreground/30"
           )}
+          strokeWidth={email.starred ? 2.5 : 1.5}
         />
       </button>
     </button>

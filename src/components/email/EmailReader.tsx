@@ -1,5 +1,5 @@
 import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
-import type { Email } from "@/data/mockEmails";
+import type { Email } from "@/hooks/useEmails";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string): string {
@@ -38,7 +38,6 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
 
   return (
     <div className="flex-1 flex flex-col h-full animate-fade-in bg-background">
-      {/* Header toolbar */}
       <div className="flex items-center gap-0.5 px-4 py-2.5 border-b border-divider">
         {onBack && (
           <button onClick={onBack} className="p-1.5 rounded-md hover:bg-secondary transition-all duration-150 mr-1">
@@ -66,7 +65,6 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
         </button>
       </div>
 
-      {/* Email content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-8 py-6">
           <h1 className="text-lg font-semibold text-foreground tracking-tight mb-6">{email.subject}</h1>
@@ -106,7 +104,6 @@ export function EmailReader({ email, onToggleStar, onBack }: EmailReaderProps) {
         </div>
       </div>
 
-      {/* Quick reply */}
       <div className="border-t border-divider p-4">
         <div className="max-w-3xl mx-auto">
           <div className="border border-input rounded-lg px-4 py-3 text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm transition-all duration-200">

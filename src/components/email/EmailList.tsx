@@ -20,9 +20,11 @@ interface EmailListProps {
   inactiveSenders?: Set<string>;
   onDismissSender?: (email: string) => void;
   onKeepSender?: (email: string) => void;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore }: EmailListProps) {
   const signalIds = new Set(Object.keys(buyingSignals));
   const signalEmails = emails.filter((e) => signalIds.has(e.id));
   const otherEmails = emails.filter((e) => !signalIds.has(e.id));
@@ -104,6 +106,16 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                 />
               </div>
             ))}
+            {hasMore && onLoadMore && (
+              <div className="px-4 py-3 text-center">
+                <button
+                  onClick={onLoadMore}
+                  className="px-4 py-2 text-[12px] font-medium text-primary hover:bg-secondary rounded-md transition-colors"
+                >
+                  Load more
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>

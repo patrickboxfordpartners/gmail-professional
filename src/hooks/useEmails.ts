@@ -1,7 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const PAGE_SIZE = 50;
+
+const LIST_COLUMNS = "id, sender_id, recipient_id, subject, preview, folder, read, starred, has_attachment, labels, created_at, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)";
 
 export interface Email {
   id: string;
@@ -24,7 +28,7 @@ interface DbEmail {
   recipient_id: string;
   subject: string;
   preview: string;
-  body: string;
+  body?: string;
   folder: string;
   read: boolean;
   starred: boolean;
@@ -48,7 +52,7 @@ function mapDbEmail(row: DbEmail): Email {
     },
     subject: row.subject,
     preview: row.preview,
-    body: row.body,
+    body: row.body || "",
     date: new Date(row.created_at),
     read: row.read,
     starred: row.starred,
@@ -65,18 +69,27 @@ export function useEmails() {
   const [activeFolder, setActiveFolder] = useState("inbox");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [hasMore, setHasMore] = useState(true);
+  const pageRef = useRef(0);
 
   const fetchEmails = useCallback(async () => {
     if (!user) return;
     try {
+      pageRef.current = 0;
+      const from = 0;
+      const to = PAGE_SIZE - 1;
+
       const { data, error } = await supabase
         .from("emails")
-        .select("*, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)")
+        .select(LIST_COLUMNS)
         .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      setEmails((data as unknown as DbEmail[]).map(mapDbEmail));
+      const mapped = (data as unknown as DbEmail[]).map(mapDbEmail);
+      setEmails(mapped);
+      setHasMore(mapped.length === PAGE_SIZE);
     } catch (err: any) {
       console.error("Failed to fetch emails:", err);
       toast.error("Failed to load emails");
@@ -84,6 +97,48 @@ export function useEmails() {
       setLoading(false);
     }
   }, [user]);
+
+  const loadMore = useCallback(async () => {
+    if (!user || !hasMore) return;
+    const nextPage = pageRef.current + 1;
+    const from = nextPage * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    try {
+      const { data, error } = await supabase
+        .from("emails")
+        .select(LIST_COLUMNS)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+      const mapped = (data as unknown as DbEmail[]).map(mapDbEmail);
+      setEmails((prev) => [...prev, ...mapped]);
+      setHasMore(mapped.length === PAGE_SIZE);
+      pageRef.current = nextPage;
+    } catch (err: any) {
+      console.error("Failed to load more emails:", err);
+      toast.error("Failed to load more emails");
+    }
+  }, [user, hasMore]);
+
+  /** Fetch full email body on demand (for the reader). */
+  const fetchEmailBody = useCallback(async (id: string): Promise<string> => {
+    const { data, error } = await supabase
+      .from("emails")
+      .select("body")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      console.error("Failed to fetch email body:", error);
+      return "";
+    }
+    // Also update the cached email so subsequent reads are instant
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, body: data.body } : e)));
+    return data.body;
+  }, []);
 
   useEffect(() => {
     fetchEmails();
@@ -215,11 +270,14 @@ export function useEmails() {
     search,
     loading,
     folderCounts,
+    hasMore,
     setSearch,
     handleSelect,
     clearSelection,
     handleToggleStar,
     handleFolderChange,
     sendEmail,
+    loadMore,
+    fetchEmailBody,
   };
 }

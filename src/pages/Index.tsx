@@ -23,8 +23,9 @@ import { useState, useEffect, useCallback } from "react";
 const Index = () => {
   const { user, signOut } = useAuth();
   const {
-    emails, selectedEmail, selectedId, activeFolder, search, loading, folderCounts,
+    emails, selectedEmail, selectedId, activeFolder, search, loading, folderCounts, hasMore,
     setSearch, handleSelect, clearSelection, handleToggleStar, handleFolderChange, sendEmail,
+    loadMore, fetchEmailBody,
   } = useEmails();
   const labelCtx = useLabels();
   const aiCtx = useAIEmail();
@@ -41,14 +42,17 @@ const Index = () => {
   const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
-  // Record interaction when user selects an email
+  // Record interaction when user selects an email, and fetch body on demand
   const handleSelectWithTracking = useCallback(async (id: string) => {
     handleSelect(id);
     const email = emails.find((e) => e.id === id);
     if (email) {
       noiseFilter.recordInteraction(email.from.email);
+      if (!email.body) {
+        fetchEmailBody(id);
+      }
     }
-  }, [handleSelect, emails, noiseFilter]);
+  }, [handleSelect, emails, noiseFilter, fetchEmailBody]);
 
   const inactiveSenders = noiseFilter.getInactiveSenders(emails);
 
@@ -187,6 +191,8 @@ const Index = () => {
             inactiveSenders={activeFolder === "inbox" ? inactiveSenders : new Set()}
             onDismissSender={noiseFilter.dismissSuggestion}
             onKeepSender={noiseFilter.recordInteraction}
+            hasMore={hasMore}
+            onLoadMore={loadMore}
           />
         )}
 

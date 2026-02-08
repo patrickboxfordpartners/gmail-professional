@@ -1,10 +1,12 @@
-import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon, Users, Download } from "lucide-react";
+import { Mail, Settings, HelpCircle, Bell, LogOut, Menu, Sun, Moon, Users, Download, Pen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
 import { useLabels } from "@/hooks/useLabels";
 import { useAIEmail } from "@/hooks/useAIEmail";
 import { useCRM } from "@/hooks/useCRM";
 import { useNoiseFilter } from "@/hooks/useNoiseFilter";
+import { useSignatures } from "@/hooks/useSignatures";
+import { useTemplates } from "@/hooks/useTemplates";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { EmailSidebar } from "@/components/email/EmailSidebar";
 import { EmailList } from "@/components/email/EmailList";
@@ -14,6 +16,7 @@ import { SearchBar } from "@/components/email/SearchBar";
 import { SettingsPanel } from "@/components/email/SettingsPanel";
 import { CRMPanel } from "@/components/email/CRMComponents";
 import { MigrationPanel } from "@/components/email/MigrationPanel";
+import { SignatureEditor } from "@/components/email/SignatureEditor";
 import { useTheme } from "@/hooks/useTheme";
 import { useState, useEffect, useCallback } from "react";
 
@@ -27,11 +30,14 @@ const Index = () => {
   const aiCtx = useAIEmail();
   const crmCtx = useCRM();
   const noiseFilter = useNoiseFilter();
+  const sigCtx = useSignatures();
+  const tplCtx = useTemplates();
   const [composeOpen, setComposeOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [crmOpen, setCrmOpen] = useState(false);
   const [migrationOpen, setMigrationOpen] = useState(false);
+  const [sigEditorOpen, setSigEditorOpen] = useState(false);
   const { dark, toggle: toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
@@ -99,6 +105,13 @@ const Index = () => {
             title="CRM"
           >
             <Users className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+          </button>
+          <button
+            onClick={() => setSigEditorOpen(true)}
+            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
+            title="Signatures"
+          >
+            <Pen className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
           <button
             onClick={() => setMigrationOpen(true)}
@@ -202,6 +215,14 @@ const Index = () => {
         onClose={() => setComposeOpen(false)}
         onSend={sendEmail}
         aiCtx={aiCtx}
+        sigCtx={sigCtx}
+        tplCtx={tplCtx}
+      />
+
+      <SignatureEditor
+        open={sigEditorOpen}
+        onClose={() => setSigEditorOpen(false)}
+        ctx={sigCtx}
       />
 
       <SettingsPanel

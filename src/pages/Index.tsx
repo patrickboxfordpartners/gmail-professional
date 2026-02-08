@@ -18,7 +18,7 @@ import { CRMPanel } from "@/components/email/CRMComponents";
 import { MigrationPanel } from "@/components/email/MigrationPanel";
 import { SignatureEditor } from "@/components/email/SignatureEditor";
 import { useTheme } from "@/hooks/useTheme";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -55,7 +55,10 @@ const Index = () => {
     }
   }, [handleSelect, emails, noiseFilter, fetchEmailBody, aiCtx]);
 
-  const inactiveSenders = noiseFilter.getInactiveSenders(emails);
+  const inactiveSenders = useMemo(
+    () => noiseFilter.getInactiveSenders(emails),
+    [emails, noiseFilter]
+  );
 
   // Auto-detect buying signals when inbox emails load
   useEffect(() => {

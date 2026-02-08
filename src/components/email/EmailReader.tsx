@@ -1,4 +1,5 @@
 import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
+import DOMPurify from "dompurify";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import type { Email } from "@/hooks/useEmails";
@@ -172,7 +173,7 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmC
 
           <div
             className="text-[14px] leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-primary/30 [&_blockquote]:bg-secondary/50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-muted-foreground [&_ul]:space-y-1.5 [&_li]:text-foreground/85 [&_p]:mb-4"
-            dangerouslySetInnerHTML={{ __html: email.body }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(email.body) }}
           />
         </div>
       </div>

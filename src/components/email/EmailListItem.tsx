@@ -1,3 +1,4 @@
+import React from "react";
 import { Star, Paperclip } from "lucide-react";
 import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
@@ -30,7 +31,7 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export function EmailListItem({ email, isSelected, onSelect, onToggleStar, labelCtx, buyingSignal }: EmailListItemProps) {
+export const EmailListItem = React.memo(function EmailListItem({ email, isSelected, onSelect, onToggleStar, labelCtx, buyingSignal }: EmailListItemProps) {
   const emailLabels = labelCtx?.getLabelsForEmail(email.id) || [];
 
   return (
@@ -90,4 +91,4 @@ export function EmailListItem({ email, isSelected, onSelect, onToggleStar, label
       </button>
     </button>
   );
-}
+});

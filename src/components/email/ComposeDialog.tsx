@@ -1,4 +1,5 @@
 import { X, Minus, Maximize2, Send, Sparkles, Loader2, Clock, FileText, Pen, ChevronDown, Undo2 } from "lucide-react";
+import DOMPurify from "dompurify";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -279,7 +280,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx }: 
           <div className="relative group">
             <div
               className="p-2 rounded-md border border-divider bg-secondary/30 overflow-hidden max-h-[80px] text-[11px]"
-              dangerouslySetInnerHTML={{ __html: sigCtx.renderSignatureHtml(selectedSig) }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sigCtx.renderSignatureHtml(selectedSig)) }}
             />
             <button
               onClick={() => setShowSigPicker(!showSigPicker)}

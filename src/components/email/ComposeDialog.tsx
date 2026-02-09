@@ -163,8 +163,8 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
   };
 
   return (
-    <div className={`fixed z-50 flex flex-col animate-slide-up bg-card border border-border rounded-xl shadow-stripe-lg ${
-      isMobile ? "left-0 right-0 bottom-0 w-full h-[85vh] rounded-b-none" : "bottom-6 right-6 w-[calc(50vw-3rem)] h-[calc(65vh-3rem)]"
+    <div className={`fixed z-50 flex flex-col animate-slide-up bg-card border border-border shadow-stripe-lg ${
+      isMobile ? "inset-0 w-full h-full rounded-none" : "bottom-6 right-6 w-[calc(50vw-3rem)] h-[calc(65vh-3rem)] rounded-xl"
     }`}>
       {/* Undo bar */}
       {undoCountdown > 0 && (
@@ -180,10 +180,10 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       )}
 
       {/* Title bar */}
-      <div className={`flex items-center justify-between px-4 py-2.5 bg-foreground shrink-0 ${
-        isMobile ? "rounded-t-xl" : "rounded-t-xl"
+      <div className={`flex items-center justify-between px-3 md:px-4 py-3 md:py-2.5 bg-foreground shrink-0 ${
+        isMobile ? "" : "rounded-t-xl"
       }`}>
-        <span className="text-[13px] font-semibold text-background tracking-tight">New Message</span>
+        <span className="text-[14px] md:text-[13px] font-semibold text-background tracking-tight">New Message</span>
         <div className="flex items-center gap-0.5">
           {!isMobile && (
             <>
@@ -195,24 +195,25 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
               </button>
             </>
           )}
-          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-background/10 transition-colors">
-            <X className="h-3.5 w-3.5 text-background/80" strokeWidth={2} />
+          <button onClick={onClose} className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-background/10 active:bg-background/20 transition-colors">
+            <X className="h-5 w-5 md:h-3.5 md:w-3.5 text-background/80" strokeWidth={2} />
           </button>
         </div>
       </div>
 
       {/* Fields */}
       <div>
-        <div className="flex items-center border-b border-divider px-4">
-          <span className="text-[12px] text-muted-foreground font-medium w-8">To</span>
+        <div className="flex items-center border-b border-divider px-3 md:px-4">
+          <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">To</span>
           <input type="email" value={to} onChange={(e) => setTo(e.target.value)}
             placeholder="recipient@boxfordpartners.com"
-            className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
+            className="flex-1 py-3 md:py-2.5 text-[14px] md:text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
         </div>
-        <div className="flex items-center border-b border-divider px-4">
-          <span className="text-[12px] text-muted-foreground font-medium w-8">Sub</span>
+        <div className="flex items-center border-b border-divider px-3 md:px-4">
+          <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">Sub</span>
           <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)}
-            className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground" />
+            placeholder="Subject"
+            className="flex-1 py-3 md:py-2.5 text-[14px] md:text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
         </div>
       </div>
 
@@ -288,7 +289,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       {/* Body */}
       <textarea value={body} onChange={(e) => setBody(e.target.value)}
         placeholder="Write your message..."
-        className="flex-1 min-h-[80px] px-4 py-3 text-[13px] bg-transparent outline-none resize-none text-foreground placeholder:text-muted-foreground/60 leading-relaxed" />
+        className="flex-1 min-h-[120px] md:min-h-[80px] px-3 md:px-4 py-4 md:py-3 text-[15px] md:text-[13px] bg-transparent outline-none resize-none text-foreground placeholder:text-muted-foreground/60 leading-relaxed" />
 
       {/* Signature preview */}
       {selectedSig && sigCtx && (
@@ -328,41 +329,41 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1.5 px-4 py-3 border-t border-divider shrink-0 flex-wrap">
+      <div className="flex items-center gap-2 md:gap-1.5 px-3 md:px-4 py-3 border-t border-divider shrink-0 flex-wrap">
         <button onClick={handleSend} disabled={sending || undoCountdown > 0}
-          className="compose-btn px-5 py-[7px] rounded-md text-[13px] font-semibold text-primary-foreground transition-all duration-200 flex items-center gap-2 disabled:opacity-50">
-          <Send className="h-3.5 w-3.5" strokeWidth={2.5} />
+          className="compose-btn min-h-[44px] px-6 py-2.5 md:px-5 md:py-[7px] rounded-md text-[14px] md:text-[13px] font-semibold text-primary-foreground transition-all duration-200 flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]">
+          <Send className="h-4 w-4 md:h-3.5 md:w-3.5" strokeWidth={2.5} />
           {sending ? "Sending..." : "Send"}
         </button>
 
         <button
           onClick={() => { setShowSchedule(!showSchedule); setShowTemplates(false); setShowAiPrompt(false); }}
-          className={`flex items-center gap-1 px-2.5 py-[7px] rounded-md text-[11px] font-medium transition-all ${
+          className={`min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center md:gap-1 md:px-2.5 md:py-[7px] rounded-md text-[11px] font-medium transition-all active:scale-95 ${
             showSchedule ? "bg-primary/10 text-primary" : "hover:bg-secondary text-muted-foreground"
           }`}
           title="Schedule send"
         >
-          <Clock className="h-3.5 w-3.5" />
+          <Clock className="h-4 w-4 md:h-3.5 md:w-3.5" />
         </button>
 
         {tplCtx && (
           <>
             <button
               onClick={() => { setShowTemplates(!showTemplates); setShowSchedule(false); setShowAiPrompt(false); }}
-              className={`flex items-center gap-1 px-2.5 py-[7px] rounded-md text-[11px] font-medium transition-all ${
+              className={`min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center md:gap-1 md:px-2.5 md:py-[7px] rounded-md text-[11px] font-medium transition-all active:scale-95 ${
                 showTemplates ? "bg-primary/10 text-primary" : "hover:bg-secondary text-muted-foreground"
               }`}
               title="Templates"
             >
-              <FileText className="h-3.5 w-3.5" />
+              <FileText className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>
             <button
               onClick={handleSaveTemplate}
               disabled={savingTemplate || !subject}
-              className="flex items-center gap-1 px-2.5 py-[7px] rounded-md text-[11px] font-medium hover:bg-secondary text-muted-foreground transition-all disabled:opacity-50"
+              className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center md:gap-1 md:px-2.5 md:py-[7px] rounded-md text-[11px] font-medium hover:bg-secondary text-muted-foreground transition-all disabled:opacity-50 active:scale-95"
               title="Save as template"
             >
-              <Pen className="h-3.5 w-3.5" />
+              <Pen className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>
           </>
         )}
@@ -370,12 +371,12 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
         {aiCtx && (
           <button
             onClick={() => { setShowAiPrompt(!showAiPrompt); setShowTemplates(false); setShowSchedule(false); }}
-            className={`flex items-center gap-1 px-2.5 py-[7px] rounded-md text-[11px] font-medium transition-all ${
+            className={`min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center md:gap-1 md:px-2.5 md:py-[7px] rounded-md text-[11px] font-medium transition-all active:scale-95 ${
               showAiPrompt ? "bg-primary/10 text-primary" : "hover:bg-secondary text-muted-foreground"
             }`}
             title="AI Assist"
           >
-            <Sparkles className="h-3.5 w-3.5" />
+            <Sparkles className="h-4 w-4 md:h-3.5 md:w-3.5" />
           </button>
         )}
       </div>

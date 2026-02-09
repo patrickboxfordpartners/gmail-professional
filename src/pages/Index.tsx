@@ -88,18 +88,19 @@ const Index = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
-      <header className="flex items-center h-[52px] px-3 md:px-5 border-b border-divider bg-card shrink-0">
+      <header className="flex items-center h-[56px] md:h-[52px] px-2 md:px-5 border-b border-divider bg-card shrink-0">
         {isMobile && (
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 mr-1"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 mr-1"
+            aria-label="Toggle menu"
           >
-            <Menu className="h-4 w-4 text-foreground" strokeWidth={2} />
+            <Menu className="h-5 w-5 text-foreground" strokeWidth={2} />
           </button>
         )}
-        <div className="flex items-center gap-2.5 mr-2 md:mr-4">
-          <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
-            <Mail className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={2.5} />
+        <div className="flex items-center gap-2 mr-2 md:mr-4">
+          <div className="h-8 w-8 md:h-7 md:w-7 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
+            <Mail className="h-4 w-4 md:h-3.5 md:w-3.5 text-primary-foreground" strokeWidth={2.5} />
           </div>
           <span className="text-[15px] font-semibold text-foreground tracking-tight hidden sm:inline">mailBOXFORD</span>
         </div>
@@ -143,22 +144,24 @@ const Index = () => {
           </button>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group"
+            className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 group"
             title={dark ? "Light mode" : "Dark mode"}
+            aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
           >
             {dark
-              ? <Sun className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
-              : <Moon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+              ? <Sun className="h-5 w-5 md:h-4 md:w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+              : <Moon className="h-5 w-5 md:h-4 md:w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
             }
           </button>
           <button
             onClick={signOut}
-            className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group"
+            className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 group hidden md:flex"
             title="Sign out"
+            aria-label="Sign out"
           >
             <LogOut className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
-          <div className="ml-1 md:ml-3 h-8 w-8 rounded-full bg-primary flex items-center justify-center shadow-stripe-sm cursor-pointer hover:shadow-stripe-md transition-shadow">
+          <div className="ml-1 md:ml-3 min-w-[44px] min-h-[44px] md:h-8 md:w-8 rounded-full bg-primary flex items-center justify-center shadow-stripe-sm cursor-pointer hover:shadow-stripe-md active:scale-95 transition-all">
             <span className="text-[11px] font-bold text-primary-foreground tracking-wide">{initials}</span>
           </div>
         </div>
@@ -167,15 +170,17 @@ const Index = () => {
       <div className="flex flex-1 overflow-hidden relative">
         {isMobile && sidebarOpen && (
           <div
-            className="absolute inset-0 bg-foreground/20 z-30 animate-fade-in"
+            className="absolute inset-0 bg-foreground/30 backdrop-blur-sm z-30 animate-fade-in"
             onClick={() => setSidebarOpen(false)}
+            role="button"
+            aria-label="Close sidebar"
           />
         )}
 
         <div
           className={
             isMobile
-              ? `absolute top-0 left-0 h-full z-40 transition-transform duration-200 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`
+              ? `absolute top-0 left-0 h-full z-40 transition-transform duration-300 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} shadow-stripe-lg`
               : ""
           }
         >

@@ -14,9 +14,12 @@ interface ComposeDialogProps {
   aiCtx?: ReturnType<typeof useAIEmail>;
   sigCtx?: ReturnType<typeof useSignatures>;
   tplCtx?: ReturnType<typeof useTemplates>;
+  initialTo?: string;
+  initialSubject?: string;
+  initialBody?: string;
 }
 
-export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx }: ComposeDialogProps) {
+export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, initialTo, initialSubject, initialBody }: ComposeDialogProps) {
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -42,6 +45,15 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx }: 
       if (def) setSelectedSigId(def.id);
     }
   }, [sigCtx, selectedSigId]);
+
+  // Set initial values when opening compose
+  useEffect(() => {
+    if (open) {
+      setTo(initialTo || "");
+      setSubject(initialSubject || "");
+      setBody(initialBody || "");
+    }
+  }, [open, initialTo, initialSubject, initialBody]);
 
   if (!open) return null;
 
@@ -150,7 +162,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx }: 
 
   return (
     <div className={`fixed bottom-0 z-50 flex flex-col animate-slide-up bg-card border border-border rounded-t-xl shadow-stripe-lg ${
-      isMobile ? "left-0 right-0 w-full h-[85vh]" : "right-6 w-[540px]"
+      isMobile ? "left-0 right-0 w-full h-[85vh]" : "right-6 w-[1080px]"
     }`}>
       {/* Undo bar */}
       {undoCountdown > 0 && (

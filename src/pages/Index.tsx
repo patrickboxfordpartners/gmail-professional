@@ -34,6 +34,7 @@ const Index = () => {
   const sigCtx = useSignatures();
   const tplCtx = useTemplates();
   const [composeOpen, setComposeOpen] = useState(false);
+  const [replyContext, setReplyContext] = useState<{ to: string; subject: string; body: string } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [crmOpen, setCrmOpen] = useState(false);
@@ -79,6 +80,11 @@ const Index = () => {
     handleFolderChange(folder);
     setSidebarOpen(false);
   };
+
+  const handleReply = useCallback((to: string, subject: string, body: string) => {
+    setReplyContext({ to, subject, body });
+    setComposeOpen(true);
+  }, []);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
@@ -205,6 +211,7 @@ const Index = () => {
             email={selectedEmail}
             onToggleStar={handleToggleStar}
             onBack={clearSelection}
+            onReply={handleReply}
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}
@@ -213,6 +220,7 @@ const Index = () => {
           <EmailReader
             email={selectedEmail}
             onToggleStar={handleToggleStar}
+            onReply={handleReply}
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}
@@ -222,11 +230,17 @@ const Index = () => {
 
       <ComposeDialog
         open={composeOpen}
-        onClose={() => setComposeOpen(false)}
+        onClose={() => {
+          setComposeOpen(false);
+          setReplyContext(null);
+        }}
         onSend={sendEmail}
         aiCtx={aiCtx}
         sigCtx={sigCtx}
         tplCtx={tplCtx}
+        initialTo={replyContext?.to}
+        initialSubject={replyContext?.subject}
+        initialBody={replyContext?.body}
       />
 
       <SignatureEditor

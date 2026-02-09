@@ -28,12 +28,13 @@ interface EmailReaderProps {
   email: Email | null;
   onToggleStar: (id: string) => void;
   onBack?: () => void;
+  onReply?: (to: string, subject: string, body: string) => void;
   labelCtx?: ReturnType<typeof useLabels>;
   aiCtx?: ReturnType<typeof useAIEmail>;
   crmCtx?: ReturnType<typeof useCRM>;
 }
 
-export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, onReply, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
   const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
@@ -60,6 +61,27 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmC
   const emailLabels = labelCtx?.getLabelsForEmail(email.id) || [];
   const activeIds = labelCtx?.emailLabelMap[email.id] || [];
 
+  const handleReply = () => {
+    if (!onReply || !email) return;
+    const replySubject = email.subject.startsWith("Re: ") ? email.subject : `Re: ${email.subject}`;
+    const replyBody = `\n\n---\nOn ${formatFullDate(email.date)}, ${email.from.name} wrote:\n\n${email.body.replace(/<[^>]*>/g, "")}`;
+    onReply(email.from.email, replySubject, replyBody);
+  };
+
+  const handleReplyAll = () => {
+    if (!onReply || !email) return;
+    const replySubject = email.subject.startsWith("Re: ") ? email.subject : `Re: ${email.subject}`;
+    const replyBody = `\n\n---\nOn ${formatFullDate(email.date)}, ${email.from.name} wrote:\n\n${email.body.replace(/<[^>]*>/g, "")}`;
+    onReply(email.from.email, replySubject, replyBody);
+  };
+
+  const handleForward = () => {
+    if (!onReply || !email) return;
+    const fwdSubject = email.subject.startsWith("Fwd: ") ? email.subject : `Fwd: ${email.subject}`;
+    const fwdBody = `\n\n---\nForwarded message from ${email.from.name} <${email.from.email}>\nDate: ${formatFullDate(email.date)}\nSubject: ${email.subject}\n\n${email.body.replace(/<[^>]*>/g, "")}`;
+    onReply("", fwdSubject, fwdBody);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full animate-fade-in bg-background">
       <div className="flex items-center gap-0.5 px-4 py-2.5 border-b border-divider">
@@ -68,13 +90,13 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmC
             <ArrowLeft className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
           </button>
         )}
-        <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Reply">
+        <button onClick={handleReply} className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Reply">
           <Reply className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
         </button>
-        <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Reply All">
+        <button onClick={handleReplyAll} className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Reply All">
           <ReplyAll className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
         </button>
-        <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Forward">
+        <button onClick={handleForward} className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group" title="Forward">
           <Forward className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
         </button>
         <div className="flex-1" />
@@ -191,7 +213,10 @@ export function EmailReader({ email, onToggleStar, onBack, labelCtx, aiCtx, crmC
               }}
             />
           )}
-          <div className="border border-input rounded-lg px-4 py-3 text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm transition-all duration-200">
+          <div
+            onClick={handleReply}
+            className="border border-input rounded-lg px-4 py-3 text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm transition-all duration-200"
+          >
             Reply to {email.from.name}...
           </div>
         </div>

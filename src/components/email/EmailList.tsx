@@ -5,7 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
 import { BuyingSignalHeader } from "./AIFeatures";
 import { UnsubscribeSuggestion } from "./CRMComponents";
+import { SearchBar } from "./SearchBar";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 interface EmailListProps {
   emails: Email[];
@@ -22,9 +25,13 @@ interface EmailListProps {
   onKeepSender?: (email: string) => void;
   hasMore?: boolean;
   onLoadMore?: () => void;
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  onRefresh?: () => void;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore, search = "", onSearchChange, onRefresh }: EmailListProps) {
+  const isMobile = useIsMobile();
   const signalIds = new Set(Object.keys(buyingSignals));
   const signalEmails = emails.filter((e) => signalIds.has(e.id));
   const otherEmails = emails.filter((e) => !signalIds.has(e.id));
@@ -36,24 +43,50 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
       fullWidth ? "w-full" : "w-[400px]"
     )}>
       <div className="flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2.5 border-b border-divider">
-        <Checkbox className="h-[14px] w-[14px] rounded-sm hidden md:block" />
-        <ChevronDown className="h-3 w-3 text-muted-foreground -ml-0.5 hidden md:block" />
-        <div className="w-px h-4 bg-divider mx-1 hidden md:block" />
-        <button className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150" title="Refresh">
-          <RotateCw className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
-        </button>
-        <button className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150" title="Archive">
-          <Archive className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
-        </button>
-        <button className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150" title="Delete">
-          <Trash2 className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
-        </button>
-        <button className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150">
-          <MoreVertical className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
-        </button>
-        <span className="ml-auto text-[11px] md:text-[11px] text-muted-foreground font-medium tabular-nums">
-          {emails.length} {emails.length === 1 ? "message" : "messages"}
-        </span>
+        {isMobile ? (
+          <SearchBar value={search} onChange={onSearchChange || (() => {})} />
+        ) : (
+          <>
+            <Checkbox className="h-[14px] w-[14px] rounded-sm" />
+            <ChevronDown className="h-3 w-3 text-muted-foreground -ml-0.5" />
+            <div className="w-px h-4 bg-divider mx-1" />
+            <button
+              onClick={() => {
+                if (onRefresh) {
+                  onRefresh();
+                  toast.success("Refreshed");
+                }
+              }}
+              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              title="Refresh"
+            >
+              <RotateCw className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => toast.info("Archive feature coming soon")}
+              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              title="Archive"
+            >
+              <Archive className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => toast.info("Delete feature coming soon")}
+              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => toast.info("More options coming soon")}
+              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+            >
+              <MoreVertical className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <span className="ml-auto text-[11px] md:text-[11px] text-muted-foreground font-medium tabular-nums">
+              {emails.length} {emails.length === 1 ? "message" : "messages"}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-divider">

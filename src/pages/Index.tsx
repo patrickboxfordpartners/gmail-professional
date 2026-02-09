@@ -89,23 +89,27 @@ const Index = () => {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background">
       <header className="flex items-center h-[56px] md:h-[52px] px-2 md:px-5 border-b border-divider bg-card shrink-0">
-        {isMobile && (
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 mr-1"
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-5 w-5 text-foreground" strokeWidth={2} />
-          </button>
-        )}
         <div className="flex items-center gap-2 mr-2 md:mr-4">
-          <div className="h-8 w-8 md:h-7 md:w-7 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
-            <Mail className="h-4 w-4 md:h-3.5 md:w-3.5 text-primary-foreground" strokeWidth={2.5} />
-          </div>
-          <span className="text-[15px] font-semibold text-foreground tracking-tight hidden sm:inline">mailBOXFORD</span>
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label="Toggle menu"
+            >
+              <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
+                <Mail className="h-4 w-4 text-primary-foreground" strokeWidth={2.5} />
+              </div>
+            </button>
+          )}
+          {!isMobile && (
+            <div className="h-7 w-7 rounded-md bg-primary flex items-center justify-center shadow-stripe-sm">
+              <Mail className="h-3.5 w-3.5 text-primary-foreground" strokeWidth={2.5} />
+            </div>
+          )}
+          <span className="text-[15px] font-semibold text-foreground tracking-tight">mailBOXFORD</span>
         </div>
 
-        <SearchBar value={search} onChange={setSearch} />
+        {!isMobile && <SearchBar value={search} onChange={setSearch} />}
 
         <div className="flex items-center gap-0.5 ml-auto">
           <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block" title="Notifications">
@@ -208,6 +212,9 @@ const Index = () => {
             onKeepSender={noiseFilter.recordInteraction}
             hasMore={hasMore}
             onLoadMore={loadMore}
+            search={search}
+            onSearchChange={setSearch}
+            onRefresh={() => window.location.reload()}
           />
         )}
 

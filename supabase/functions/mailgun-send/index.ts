@@ -118,8 +118,8 @@ serve(async (req) => {
       subject: subject || "",
       body: body || "",
       preview,
-      folder: "inbox",
-      read: false,
+      folder: "sent", // Sent emails go to sent folder for the sender
+      read: true, // Sender has already "read" their own sent email
       starred: false,
     };
 

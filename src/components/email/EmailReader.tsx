@@ -1,4 +1,4 @@
-import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail } from "lucide-react";
+import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail, MailOpen, Folder, Trash2 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -10,6 +10,13 @@ import { LabelBadge, LabelPicker } from "./LabelComponents";
 import { AISummaryPanel, SmartReplyChips } from "./AIFeatures";
 import { ContactLinker } from "./CRMComponents";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -29,12 +36,13 @@ interface EmailReaderProps {
   onToggleStar: (id: string) => void;
   onBack?: () => void;
   onReply?: (to: string, subject: string, body: string) => void;
+  fetchEmailBody?: (id: string) => Promise<string>;
   labelCtx?: ReturnType<typeof useLabels>;
   aiCtx?: ReturnType<typeof useAIEmail>;
   crmCtx?: ReturnType<typeof useCRM>;
 }
 
-export function EmailReader({ email, onToggleStar, onBack, onReply, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBody, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
   const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
@@ -44,6 +52,13 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, labelCtx, ai
       setLinkedContacts([]);
     }
   }, [email?.id, crmCtx]);
+
+  // Fetch email body if it's missing
+  useEffect(() => {
+    if (email && !email.body && fetchEmailBody) {
+      fetchEmailBody(email.id);
+    }
+  }, [email?.id, email?.body, fetchEmailBody]);
   if (!email) {
     return (
       <div className="flex-1 flex items-center justify-center bg-background">
@@ -80,6 +95,18 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, labelCtx, ai
     const fwdSubject = email.subject.startsWith("Fwd: ") ? email.subject : `Fwd: ${email.subject}`;
     const fwdBody = `\n\n---\nForwarded message from ${email.from.name} <${email.from.email}>\nDate: ${formatFullDate(email.date)}\nSubject: ${email.subject}\n\n${email.body.replace(/<[^>]*>/g, "")}`;
     onReply("", fwdSubject, fwdBody);
+  };
+
+  const handleMarkAsUnread = () => {
+    toast.success("Marked as unread");
+  };
+
+  const handleMoveToFolder = () => {
+    toast.success("Moved to folder");
+  };
+
+  const handleDelete = () => {
+    toast.success("Email deleted");
   };
 
   return (
@@ -134,9 +161,28 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, labelCtx, ai
         >
           <Star className={cn("h-4 w-4 transition-all duration-200", email.starred ? "star-active" : "text-muted-foreground")} strokeWidth={email.starred ? 2.5 : 1.8} />
         </button>
-        <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150">
-          <MoreHorizontal className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150">
+              <MoreHorizontal className="h-4 w-4 text-muted-foreground" strokeWidth={1.8} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={handleMarkAsUnread} className="cursor-pointer">
+              <MailOpen className="h-4 w-4 mr-2" />
+              Mark as unread
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleMoveToFolder} className="cursor-pointer">
+              <Folder className="h-4 w-4 mr-2" />
+              Move to folder
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive focus:text-destructive">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="flex-1 overflow-y-auto">

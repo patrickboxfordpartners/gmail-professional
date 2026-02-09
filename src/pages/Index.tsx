@@ -107,14 +107,14 @@ const Index = () => {
         <SearchBar value={search} onChange={setSearch} />
 
         <div className="flex items-center gap-0.5 ml-auto">
-          <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block">
+          <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block" title="Notifications">
             <Bell className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
-          <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block">
+          <button className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block" title="Help">
             <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
           <button
-            onClick={() => setCrmOpen(true)}
+            onClick={() => window.open('https://app.boxfordpartners.com', '_blank')}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
             title="CRM"
           >
@@ -212,6 +212,7 @@ const Index = () => {
             onToggleStar={handleToggleStar}
             onBack={clearSelection}
             onReply={handleReply}
+            fetchEmailBody={fetchEmailBody}
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}
@@ -221,6 +222,7 @@ const Index = () => {
             email={selectedEmail}
             onToggleStar={handleToggleStar}
             onReply={handleReply}
+            fetchEmailBody={fetchEmailBody}
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}

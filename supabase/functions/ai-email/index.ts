@@ -68,7 +68,7 @@ Only return the JSON, nothing else.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.0-flash-exp",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
@@ -78,14 +78,14 @@ Only return the JSON, nothing else.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+        return new Response(JSON.stringify({ error: "AI features are temporarily unavailable due to rate limits. Please enable billing on your Google Cloud project or try again later." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
       console.error("AI API error:", response.status, t);
-      return new Response(JSON.stringify({ error: "AI service error" }), {
+      return new Response(JSON.stringify({ error: `AI service error: ${t}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

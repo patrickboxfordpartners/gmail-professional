@@ -14,6 +14,7 @@ interface SettingsPanelProps {
 }
 
 type Tab = "account" | "appearance" | "notifications";
+type Density = "Compact" | "Default" | "Comfortable";
 
 export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const { user, signOut } = useAuth();
@@ -21,6 +22,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const [tab, setTab] = useState<Tab>("appearance");
   const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || "");
   const [saving, setSaving] = useState(false);
+  const [density, setDensity] = useState<Density>(() => (localStorage.getItem("pref_density") as Density) || "Default");
 
   // Notification prefs stored in localStorage
   const [emailNotifs, setEmailNotifs] = useState(() => localStorage.getItem("pref_email_notifs") !== "false");
@@ -141,14 +143,19 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
                 <h3 className="text-[13px] font-semibold text-foreground mb-1">Density</h3>
                 <p className="text-[12px] text-muted-foreground mb-3">Adjust email list spacing</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {["Compact", "Default", "Comfortable"].map((d) => (
+                  {(["Compact", "Default", "Comfortable"] as Density[]).map((d) => (
                     <button
                       key={d}
+                      onClick={() => {
+                        setDensity(d);
+                        localStorage.setItem("pref_density", d);
+                        toast.success(`Density set to ${d}`);
+                      }}
                       className={cn(
                         "p-2.5 rounded-lg border text-[12px] font-medium transition-all",
-                        d === "Default"
+                        d === density
                           ? "border-primary bg-accent text-accent-foreground"
-                          : "border-divider text-muted-foreground hover:border-ring/40"
+                          : "border-divider text-muted-foreground hover:border-ring/40 hover:bg-secondary"
                       )}
                     >
                       {d}

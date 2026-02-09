@@ -161,8 +161,8 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
   };
 
   return (
-    <div className={`fixed bottom-0 z-50 flex flex-col animate-slide-up bg-card border border-border rounded-t-xl shadow-stripe-lg ${
-      isMobile ? "left-0 right-0 w-full h-[85vh]" : "right-6 w-[1080px]"
+    <div className={`fixed z-50 flex flex-col animate-slide-up bg-card border border-border rounded-xl shadow-stripe-lg ${
+      isMobile ? "left-0 right-0 bottom-0 w-full h-[85vh] rounded-b-none" : "bottom-6 right-6 w-[calc(50vw-3rem)] h-[calc(50vh-3rem)]"
     }`}>
       {/* Undo bar */}
       {undoCountdown > 0 && (
@@ -178,7 +178,9 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       )}
 
       {/* Title bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-foreground rounded-t-xl shrink-0">
+      <div className={`flex items-center justify-between px-4 py-2.5 bg-foreground shrink-0 ${
+        isMobile ? "rounded-t-xl" : "rounded-t-xl"
+      }`}>
         <span className="text-[13px] font-semibold text-background tracking-tight">New Message</span>
         <div className="flex items-center gap-0.5">
           {!isMobile && (

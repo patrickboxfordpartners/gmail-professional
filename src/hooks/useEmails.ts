@@ -256,24 +256,23 @@ export function useEmails() {
   }, []);
 
   const sendEmail = useCallback(async (to: string, subject: string, body: string, scheduledAt?: string) => {
-    if (!user) return;
+    if (!user) throw new Error("User not authenticated");
 
     const { data, error } = await supabase.functions.invoke("mailgun-send", {
       body: { to, subject, body, scheduledAt },
     });
 
     if (error) {
-      toast.error("Failed to send email");
-      console.error(error);
-      return;
+      console.error("Send error:", error);
+      throw new Error(error.message || "Failed to send email");
     }
 
     if (data?.error) {
-      toast.error(data.error);
-      console.error(data.error);
-      return;
+      console.error("Send error:", data.error);
+      throw new Error(data.error);
     }
 
+    toast.success("Email sent successfully");
     fetchEmails();
   }, [user, fetchEmails]);
 

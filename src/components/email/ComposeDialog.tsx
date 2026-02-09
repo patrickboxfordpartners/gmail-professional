@@ -97,8 +97,9 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
           resetForm();
           onClose();
           toast.success("Email sent");
-        } catch {
-          toast.error("Failed to send");
+        } catch (e) {
+          console.error("Send error:", e);
+          toast.error(e instanceof Error ? e.message : "Failed to send");
         } finally {
           setSending(false);
           undoRef.current = null;
@@ -116,8 +117,9 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       resetForm();
       onClose();
       toast.success(scheduledAt ? "Email scheduled" : "Email sent");
-    } catch {
-      toast.error("Failed to send");
+    } catch (e) {
+      console.error("Send error:", e);
+      toast.error(e instanceof Error ? e.message : "Failed to send");
     } finally {
       setSending(false);
     }
@@ -162,7 +164,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
 
   return (
     <div className={`fixed z-50 flex flex-col animate-slide-up bg-card border border-border rounded-xl shadow-stripe-lg ${
-      isMobile ? "left-0 right-0 bottom-0 w-full h-[85vh] rounded-b-none" : "bottom-6 right-6 w-[calc(50vw-3rem)] h-[calc(50vh-3rem)]"
+      isMobile ? "left-0 right-0 bottom-0 w-full h-[85vh] rounded-b-none" : "bottom-6 right-6 w-[calc(50vw-3rem)] h-[calc(65vh-3rem)]"
     }`}>
       {/* Undo bar */}
       {undoCountdown > 0 && (

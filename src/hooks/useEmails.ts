@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 const PAGE_SIZE = 50;
 
-const LIST_COLUMNS = "id, sender_id, recipient_id, subject, preview, folder, read, starred, has_attachment, labels, created_at, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)";
+const LIST_COLUMNS = "id, sender_id, recipient_id, sender_email, recipient_email, sender_name, recipient_name, subject, preview, folder, read, starred, has_attachment, labels, created_at, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)";
 
 export interface Email {
   id: string;
@@ -24,8 +24,12 @@ export interface Email {
 
 interface DbEmail {
   id: string;
-  sender_id: string;
-  recipient_id: string;
+  sender_id: string | null;
+  recipient_id: string | null;
+  sender_email: string | null;
+  recipient_email: string | null;
+  sender_name: string | null;
+  recipient_name: string | null;
   subject: string;
   preview: string;
   body?: string;
@@ -40,15 +44,17 @@ interface DbEmail {
 }
 
 function mapDbEmail(row: DbEmail): Email {
+  const senderEmail = row.sender?.email || row.sender_email || "";
+  const recipientEmail = row.recipient?.email || row.recipient_email || "";
   return {
     id: row.id,
     from: {
-      name: row.sender?.display_name || row.sender?.email || "Unknown",
-      email: row.sender?.email || "",
+      name: row.sender?.display_name || row.sender_name || senderEmail || "Unknown",
+      email: senderEmail,
     },
     to: {
-      name: row.recipient?.display_name || row.recipient?.email || "Unknown",
-      email: row.recipient?.email || "",
+      name: row.recipient?.display_name || row.recipient_name || recipientEmail || "Unknown",
+      email: recipientEmail,
     },
     subject: row.subject,
     preview: row.preview,
@@ -82,7 +88,7 @@ export function useEmails() {
       const { data, error } = await supabase
         .from("emails")
         .select(LIST_COLUMNS)
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id},sender_email.eq.${user.email},recipient_email.eq.${user.email}`)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -108,7 +114,7 @@ export function useEmails() {
       const { data, error } = await supabase
         .from("emails")
         .select(LIST_COLUMNS)
-        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+        .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id},sender_email.eq.${user.email},recipient_email.eq.${user.email}`)
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -165,9 +171,14 @@ export function useEmails() {
     const channel = supabase
       .channel("emails-realtime")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "emails" }, async (payload) => {
-        const newRow = payload.new as { id: string; sender_id: string; recipient_id: string };
-        // Only care about emails involving this user
-        if (newRow.sender_id !== user.id && newRow.recipient_id !== user.id) return;
+        const newRow = payload.new as { id: string; sender_id: string | null; recipient_id: string | null; sender_email: string | null; recipient_email: string | null };
+        // Only care about emails involving this user (by UUID or email address)
+        const involvesUser =
+          newRow.sender_id === user.id ||
+          newRow.recipient_id === user.id ||
+          newRow.sender_email === user.email ||
+          newRow.recipient_email === user.email;
+        if (!involvesUser) return;
         const email = await fetchSingleEmail(newRow.id);
         if (email) {
           setEmails((prev) => [email, ...prev]);
@@ -246,40 +257,20 @@ export function useEmails() {
 
   const sendEmail = useCallback(async (to: string, subject: string, body: string, scheduledAt?: string) => {
     if (!user) return;
-    // Find recipient profile
-    const { data: recipientProfile } = await supabase
-      .from("profiles")
-      .select("id, email")
-      .eq("email", to)
-      .maybeSingle();
 
-    if (!recipientProfile) {
-      toast.error("Recipient not found. They must have an account.");
-      return;
-    }
-
-    const preview = body.replace(/<[^>]*>/g, "").slice(0, 100);
-
-    const insertData: Record<string, unknown> = {
-      sender_id: user.id,
-      recipient_id: recipientProfile.id,
-      subject,
-      body,
-      preview,
-      folder: "inbox",
-      read: false,
-      starred: false,
-    };
-
-    if (scheduledAt) {
-      insertData.scheduled_at = scheduledAt;
-    }
-
-    const { error } = await supabase.from("emails").insert(insertData as any);
+    const { data, error } = await supabase.functions.invoke("mailgun-send", {
+      body: { to, subject, body, scheduledAt },
+    });
 
     if (error) {
       toast.error("Failed to send email");
       console.error(error);
+      return;
+    }
+
+    if (data?.error) {
+      toast.error(data.error);
+      console.error(data.error);
       return;
     }
 

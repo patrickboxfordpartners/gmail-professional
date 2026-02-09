@@ -276,11 +276,16 @@ export type Database = {
           has_attachment: boolean
           id: string
           labels: string[] | null
+          mailgun_message_id: string | null
           preview: string
           read: boolean
-          recipient_id: string
+          recipient_email: string | null
+          recipient_id: string | null
+          recipient_name: string | null
           scheduled_at: string | null
-          sender_id: string
+          sender_email: string | null
+          sender_id: string | null
+          sender_name: string | null
           starred: boolean
           subject: string
           updated_at: string
@@ -292,11 +297,16 @@ export type Database = {
           has_attachment?: boolean
           id?: string
           labels?: string[] | null
+          mailgun_message_id?: string | null
           preview?: string
           read?: boolean
-          recipient_id: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_name?: string | null
           scheduled_at?: string | null
-          sender_id: string
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_name?: string | null
           starred?: boolean
           subject?: string
           updated_at?: string
@@ -308,11 +318,16 @@ export type Database = {
           has_attachment?: boolean
           id?: string
           labels?: string[] | null
+          mailgun_message_id?: string | null
           preview?: string
           read?: boolean
-          recipient_id?: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          recipient_name?: string | null
           scheduled_at?: string | null
-          sender_id?: string
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_name?: string | null
           starred?: boolean
           subject?: string
           updated_at?: string

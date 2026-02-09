@@ -1,7 +1,13 @@
-project_id = "tztlodqhuecoqyjwulei"
+project_id = "btzeoiloahvvxqrefdvx"
 
 [functions.ai-email]
 verify_jwt = false
 
 [functions.email-migration]
+verify_jwt = false
+
+[functions.mailgun-send]
+verify_jwt = false
+
+[functions.mailgun-inbound]
 verify_jwt = false

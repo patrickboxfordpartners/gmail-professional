@@ -120,13 +120,14 @@ const Index = () => {
           >
             <Users className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
-          <button
+          {/* Temporarily hidden - signature editor performance issues */}
+          {/* <button
             onClick={() => setSigEditorOpen(true)}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
             title="Signatures"
           >
             <Pen className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
-          </button>
+          </button> */}
           <button
             onClick={() => setMigrationOpen(true)}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"

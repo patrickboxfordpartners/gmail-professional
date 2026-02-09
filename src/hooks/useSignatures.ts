@@ -91,6 +91,9 @@ export function useSignatures() {
   }, [user, signatures.length, fetchSignatures]);
 
   const updateSignature = useCallback(async (id: string, updates: Partial<EmailSignature>) => {
+    // Optimistic update - update local state immediately
+    setSignatures((prev) => prev.map((sig) => sig.id === id ? { ...sig, ...updates } : sig));
+
     // If setting as default, unset others first
     if (updates.is_default && user) {
       await supabase.from("email_signatures").update({ is_default: false } as any).eq("user_id", user.id);
@@ -98,6 +101,8 @@ export function useSignatures() {
     const { error } = await supabase.from("email_signatures").update(updates as any).eq("id", id);
     if (error) {
       toast.error("Failed to update signature");
+      // Revert on error
+      await fetchSignatures();
       console.error(error);
     } else {
       await fetchSignatures();

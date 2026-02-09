@@ -230,14 +230,15 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
             </div>
           )}
 
-          {aiCtx && (
+          {/* Temporarily hidden - AI features unavailable due to API quota limits */}
+          {/* {aiCtx && (
             <AISummaryPanel
               summary={aiCtx.summary}
               loading={aiCtx.summarizing}
               onRequest={() => aiCtx.summarize(email)}
               onClear={aiCtx.clearSummary}
             />
-          )}
+          )} */}
 
           <div
             className="text-[14px] leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-primary/30 [&_blockquote]:bg-secondary/50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-muted-foreground [&_ul]:space-y-1.5 [&_li]:text-foreground/85 [&_p]:mb-4"
@@ -248,7 +249,8 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
 
       <div className="border-t border-divider p-4">
         <div className="max-w-3xl mx-auto">
-          {aiCtx && (
+          {/* Temporarily hidden - AI features unavailable due to API quota limits */}
+          {/* {aiCtx && (
             <SmartReplyChips
               replies={aiCtx.smartReplies}
               loading={aiCtx.replying}
@@ -258,7 +260,7 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
                 toast.success("Reply copied to clipboard");
               }}
             />
-          )}
+          )} */}
           <div
             onClick={handleReply}
             className="border border-input rounded-lg px-4 py-3 text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm transition-all duration-200"

@@ -61,13 +61,13 @@ const Index = () => {
     [emails, noiseFilter]
   );
 
-  // Auto-detect buying signals when inbox emails load
-  useEffect(() => {
-    if (activeFolder === "inbox" && emails.length > 0 && !aiCtx.categorizing) {
-      aiCtx.detectBuyingSignals(emails);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeFolder, emails.length]);
+  // Auto-detect buying signals when inbox emails load - TEMPORARILY DISABLED
+  // useEffect(() => {
+  //   if (activeFolder === "inbox" && emails.length > 0 && !aiCtx.categorizing) {
+  //     aiCtx.detectBuyingSignals(emails);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [activeFolder, emails.length]);
 
   const initials = user?.user_metadata?.display_name
     ? user.user_metadata.display_name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -120,14 +120,13 @@ const Index = () => {
           >
             <Users className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
-          {/* Temporarily hidden - signature editor performance issues */}
-          {/* <button
+          <button
             onClick={() => setSigEditorOpen(true)}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
             title="Signatures"
           >
             <Pen className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
-          </button> */}
+          </button>
           <button
             onClick={() => setMigrationOpen(true)}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"

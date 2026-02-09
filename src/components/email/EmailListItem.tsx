@@ -64,7 +64,8 @@ export const EmailListItem = React.memo(function EmailListItem({ email, isSelect
             {email.subject}
           </span>
           {email.hasAttachment && <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" strokeWidth={2} />}
-          {buyingSignal && <BuyingSignalBadge urgency={buyingSignal.urgency} reason={buyingSignal.reason} />}
+          {/* Temporarily hidden - AI features unavailable */}
+          {/* {buyingSignal && <BuyingSignalBadge urgency={buyingSignal.urgency} reason={buyingSignal.reason} />} */}
         </div>
         <p className="text-[12px] text-muted-foreground/80 truncate leading-relaxed">{email.preview}</p>
         {emailLabels.length > 0 && (

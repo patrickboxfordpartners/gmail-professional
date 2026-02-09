@@ -12,14 +12,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
+    console.log("=== mailgun-send function called ===");
     // 1. Authenticate caller via JWT
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("Missing authorization header");
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    console.log("Auth header present");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -56,21 +59,40 @@ serve(async (req) => {
     }
 
     // 3. Look up sender's profile
-    const { data: senderProfile, error: senderErr } = await serviceClient
+    console.log("Looking up sender profile for user:", user.id);
+    let { data: senderProfile, error: senderErr } = await serviceClient
       .from("profiles")
       .select("id, email, display_name")
       .eq("id", user.id)
       .single();
 
+    // If profile doesn't exist, create it
     if (senderErr || !senderProfile) {
-      return new Response(
-        JSON.stringify({ error: "Sender profile not found" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      console.log("Profile not found, creating...", senderErr);
+      const displayName = user.user_metadata?.display_name || user.email?.split("@")[0] || "User";
+      const { data: newProfile, error: insertErr } = await serviceClient
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          display_name: displayName,
+        })
+        .select("id, email, display_name")
+        .single();
+
+      if (insertErr || !newProfile) {
+        console.error("Failed to create profile:", insertErr);
+        return new Response(
+          JSON.stringify({ error: `Failed to create sender profile: ${insertErr?.message}` }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      senderProfile = newProfile;
     }
+    console.log("Sender profile found:", senderProfile.email);
 
     // 4. Check if recipient is internal (has a profile)
     const { data: recipientProfile } = await serviceClient
@@ -105,6 +127,7 @@ serve(async (req) => {
       insertData.scheduled_at = scheduledAt;
     }
 
+    console.log("Inserting email into database...");
     const { data: emailRow, error: insertErr } = await serviceClient
       .from("emails")
       .insert(insertData)
@@ -114,18 +137,20 @@ serve(async (req) => {
     if (insertErr) {
       console.error("DB insert error:", insertErr);
       return new Response(
-        JSON.stringify({ error: "Failed to save email" }),
+        JSON.stringify({ error: `Failed to save email: ${insertErr.message}` }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
+    console.log("Email saved to DB with ID:", emailRow.id);
 
     // 6. Send via Mailgun HTTP API
     const MAILGUN_API_KEY = Deno.env.get("MAILGUN_API_KEY");
     const MAILGUN_DOMAIN = Deno.env.get("MAILGUN_DOMAIN");
 
+    console.log("Mailgun domain:", MAILGUN_DOMAIN);
     if (!MAILGUN_API_KEY || !MAILGUN_DOMAIN) {
       console.error("Mailgun env vars not configured");
       return new Response(
@@ -140,6 +165,7 @@ serve(async (req) => {
       );
     }
 
+    console.log("Sending via Mailgun to:", to);
     const form = new FormData();
     form.append("from", senderFrom);
     form.append("to", to);
@@ -163,7 +189,7 @@ serve(async (req) => {
       // Email is saved in DB even if delivery fails
       return new Response(
         JSON.stringify({
-          error: "Email saved but delivery failed",
+          error: `Email saved but delivery failed: ${errText}`,
           emailId: emailRow.id,
         }),
         {
@@ -172,9 +198,11 @@ serve(async (req) => {
         }
       );
     }
+    console.log("Mailgun response OK");
 
     const mgData = await mgResponse.json();
     const mailgunMessageId = mgData.id || null;
+    console.log("Mailgun message ID:", mailgunMessageId);
 
     // 7. Store mailgun_message_id on the email row
     if (mailgunMessageId) {
@@ -184,6 +212,7 @@ serve(async (req) => {
         .eq("id", emailRow.id);
     }
 
+    console.log("=== Email sent successfully ===");
     return new Response(
       JSON.stringify({
         success: true,
@@ -195,7 +224,7 @@ serve(async (req) => {
       }
     );
   } catch (e) {
-    console.error("mailgun-send error:", e);
+    console.error("=== mailgun-send error ===", e);
     return new Response(
       JSON.stringify({
         error: e instanceof Error ? e.message : "Unknown error",

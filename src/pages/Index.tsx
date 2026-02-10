@@ -25,7 +25,7 @@ const Index = () => {
   const {
     emails, selectedEmail, selectedId, activeFolder, search, loading, folderCounts, hasMore,
     setSearch, handleSelect, clearSelection, handleToggleStar, handleFolderChange, sendEmail,
-    loadMore, fetchEmailBody,
+    loadMore, fetchEmailBody, handleArchive, handleDelete,
   } = useEmails();
   const labelCtx = useLabels();
   const aiCtx = useAIEmail();
@@ -215,6 +215,8 @@ const Index = () => {
             search={search}
             onSearchChange={setSearch}
             onRefresh={() => window.location.reload()}
+            onArchive={handleArchive}
+            onDelete={handleDelete}
           />
         )}
 

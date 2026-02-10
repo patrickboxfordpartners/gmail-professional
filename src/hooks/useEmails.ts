@@ -255,6 +255,18 @@ export function useEmails() {
     setSelectedId(null);
   }, []);
 
+  const handleArchive = useCallback(async (id: string) => {
+    await supabase.from("emails").update({ folder: "archive" }).eq("id", id);
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, folder: "archive" } : e)));
+    toast.success("Archived");
+  }, []);
+
+  const handleDelete = useCallback(async (id: string) => {
+    await supabase.from("emails").update({ folder: "trash" }).eq("id", id);
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, folder: "trash" } : e)));
+    toast.success("Moved to trash");
+  }, []);
+
   const sendEmail = useCallback(async (to: string, subject: string, body: string, scheduledAt?: string) => {
     if (!user) throw new Error("User not authenticated");
 
@@ -302,6 +314,8 @@ export function useEmails() {
     clearSelection,
     handleToggleStar,
     handleFolderChange,
+    handleArchive,
+    handleDelete,
     sendEmail,
     loadMore,
     fetchEmailBody,

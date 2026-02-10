@@ -28,9 +28,11 @@ interface EmailListProps {
   search?: string;
   onSearchChange?: (value: string) => void;
   onRefresh?: () => void;
+  onArchive?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore, search = "", onSearchChange, onRefresh }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore, search = "", onSearchChange, onRefresh, onArchive, onDelete }: EmailListProps) {
   const isMobile = useIsMobile();
   const signalIds = new Set(Object.keys(buyingSignals));
   const signalEmails = emails.filter((e) => signalIds.has(e.id));
@@ -114,6 +116,8 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                     isSelected={selectedId === email.id}
                     onSelect={() => onSelect(email.id)}
                     onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
+                    onArchive={onArchive}
+                    onDelete={onDelete}
                     labelCtx={labelCtx}
                     buyingSignal={buyingSignals[email.id]}
                   />
@@ -135,6 +139,8 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                   isSelected={selectedId === email.id}
                   onSelect={() => onSelect(email.id)}
                   onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
+                  onArchive={onArchive}
+                  onDelete={onDelete}
                   labelCtx={labelCtx}
                 />
               </div>

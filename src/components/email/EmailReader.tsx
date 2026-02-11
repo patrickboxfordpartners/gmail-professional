@@ -110,7 +110,7 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full animate-fade-in bg-background">
+    <div className="flex-1 min-w-0 flex flex-col h-full animate-fade-in bg-background">
       <div className="flex items-center gap-1 md:gap-0.5 px-2 md:px-4 py-2.5 border-b border-divider">
         {onBack && (
           <button onClick={onBack} className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 mr-1" aria-label="Back to list">
@@ -186,8 +186,8 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
         </DropdownMenu>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-4 md:px-8 py-4 md:py-6">
+      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+        <div className="max-w-4xl mx-auto px-4 md:px-8 py-4 md:py-6 min-w-0">
           <h1 className="text-[17px] md:text-lg font-semibold text-foreground tracking-tight mb-3 md:mb-2 leading-snug">{email.subject}</h1>
 
           {emailLabels.length > 0 && (
@@ -242,7 +242,7 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
           )} */}
 
           <div
-            className="text-[15px] md:text-[14px] leading-relaxed md:leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-primary/30 [&_blockquote]:bg-secondary/50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-muted-foreground [&_ul]:space-y-1.5 [&_li]:text-foreground/85 [&_p]:mb-4"
+            className="text-[15px] md:text-[14px] leading-relaxed md:leading-relaxed bg-white text-[#1a1a1a] rounded-lg overflow-x-auto break-words [&_a]:text-[#0066cc] [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-[#0066cc]/30 [&_blockquote]:bg-[#f5f5f5] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-[#555] [&_ul]:space-y-1.5 [&_li]:text-[#2a2a2a] [&_p]:mb-4 [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:block [&_img]:max-w-full [&_img]:h-auto [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_div]:max-w-full"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(email.body) }}
           />
         </div>

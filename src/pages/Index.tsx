@@ -135,7 +135,7 @@ const Index = () => {
             <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
           </button>
           <button
-            onClick={() => window.open('https://app.boxfordpartners.com', '_blank')}
+            onClick={() => window.open('https://crm.boxfordpartners.com', '_blank')}
             className="p-2 rounded-md hover:bg-secondary transition-all duration-150 group hidden sm:block"
             title="CRM"
           >

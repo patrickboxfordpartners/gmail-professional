@@ -2,13 +2,14 @@ import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
 import { EmailListItem } from "./EmailListItem";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2 } from "lucide-react";
+import { RotateCw, MoreVertical, ChevronDown, Archive, Trash2, MailOpen, Mail, X } from "lucide-react";
 import { BuyingSignalHeader } from "./AIFeatures";
 import { UnsubscribeSuggestion } from "./CRMComponents";
 import { SearchBar } from "./SearchBar";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { useState, useEffect } from "react";
 
 interface EmailListProps {
   emails: Email[];
@@ -30,10 +31,40 @@ interface EmailListProps {
   onRefresh?: () => void;
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onMarkRead?: (id: string) => void;
+  onBulkMarkRead?: (ids: string[]) => void;
+  onBulkMarkUnread?: (ids: string[]) => void;
+  onBulkArchive?: (ids: string[]) => void;
+  onBulkDelete?: (ids: string[]) => void;
 }
 
-export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore, search = "", onSearchChange, onRefresh, onArchive, onDelete }: EmailListProps) {
+export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderName, loading, fullWidth, labelCtx, buyingSignals = {}, inactiveSenders = new Set(), onDismissSender, onKeepSender, hasMore, onLoadMore, search = "", onSearchChange, onRefresh, onArchive, onDelete, onMarkRead, onBulkMarkRead, onBulkMarkUnread, onBulkArchive, onBulkDelete }: EmailListProps) {
   const isMobile = useIsMobile();
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  // Clear selection when folder changes
+  useEffect(() => { setChecked(new Set()); }, [folderName]);
+
+  const toggleCheck = (id: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const allChecked = emails.length > 0 && checked.size === emails.length;
+  const someChecked = checked.size > 0 && !allChecked;
+
+  const toggleAll = () => {
+    setChecked(allChecked ? new Set() : new Set(emails.map((e) => e.id)));
+  };
+
+  const clearSelection = () => setChecked(new Set());
+
+  const selectedIds = Array.from(checked);
+  const hasSelection = checked.size > 0;
+
   const signalIds = new Set(Object.keys(buyingSignals));
   const signalEmails = emails.filter((e) => signalIds.has(e.id));
   const otherEmails = emails.filter((e) => !signalIds.has(e.id));
@@ -47,44 +78,95 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
       <div className="flex items-center gap-1 md:gap-1.5 px-3 md:px-4 py-2.5 border-b border-divider">
         {isMobile ? (
           <SearchBar value={search} onChange={onSearchChange || (() => {})} />
-        ) : (
+        ) : hasSelection ? (
+          /* ── Bulk action toolbar ── */
           <>
-            <Checkbox className="h-[14px] w-[14px] rounded-sm" />
+            <button
+              onClick={clearSelection}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary transition-all duration-150"
+              title="Clear selection"
+            >
+              <X className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <span className="text-[12px] font-semibold text-foreground tabular-nums mr-1">
+              {checked.size} selected
+            </span>
+            <div className="w-px h-4 bg-divider mx-1" />
+            <button
+              onClick={() => { onBulkMarkRead?.(selectedIds); clearSelection(); }}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary transition-all duration-150"
+              title="Mark as read"
+            >
+              <MailOpen className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => { onBulkMarkUnread?.(selectedIds); clearSelection(); }}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary transition-all duration-150"
+              title="Mark as unread"
+            >
+              <Mail className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => { onBulkArchive?.(selectedIds); clearSelection(); }}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary transition-all duration-150"
+              title="Archive"
+            >
+              <Archive className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <button
+              onClick={() => { onBulkDelete?.(selectedIds); clearSelection(); }}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary transition-all duration-150"
+              title="Delete"
+            >
+              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+          </>
+        ) : (
+          /* ── Normal toolbar ── */
+          <>
+            <Checkbox
+              checked={allChecked}
+              ref={(el) => { if (el) (el as any).indeterminate = someChecked; }}
+              onCheckedChange={toggleAll}
+              className="h-[14px] w-[14px] rounded-sm"
+            />
             <ChevronDown className="h-3 w-3 text-muted-foreground -ml-0.5" />
             <div className="w-px h-4 bg-divider mx-1" />
             <button
-              onClick={() => {
-                if (onRefresh) {
-                  onRefresh();
-                  toast.success("Refreshed");
-                }
-              }}
-              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              onClick={() => { if (onRefresh) { onRefresh(); toast.success("Refreshed"); } }}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
               title="Refresh"
             >
-              <RotateCw className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+              <RotateCw className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
             </button>
             <button
-              onClick={() => toast.info("Archive feature coming soon")}
-              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              onClick={() => selectedId && onArchive?.(selectedId)}
+              disabled={!selectedId}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 disabled:opacity-30 disabled:cursor-default"
               title="Archive"
             >
-              <Archive className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+              <Archive className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
             </button>
             <button
-              onClick={() => toast.info("Delete feature coming soon")}
-              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              onClick={() => selectedId && onDelete?.(selectedId)}
+              disabled={!selectedId}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 disabled:opacity-30 disabled:cursor-default"
               title="Delete"
             >
-              <Trash2 className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
             </button>
             <button
-              onClick={() => toast.info("More options coming soon")}
-              className="min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150"
+              onClick={() => selectedId && onMarkRead?.(selectedId)}
+              disabled={!selectedId}
+              className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 disabled:opacity-30 disabled:cursor-default"
+              title="Mark as read"
             >
-              <MoreVertical className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={2} />
+              <MailOpen className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
             </button>
-            <span className="ml-auto text-[11px] md:text-[11px] text-muted-foreground font-medium tabular-nums">
+            <button className="md:p-1.5 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150">
+              <MoreVertical className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={2} />
+            </button>
+            <span className="ml-auto text-[11px] text-muted-foreground font-medium tabular-nums">
               {emails.length} {emails.length === 1 ? "message" : "messages"}
             </span>
           </>
@@ -118,6 +200,9 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                     onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
                     onArchive={onArchive}
                     onDelete={onDelete}
+                    onMarkRead={onMarkRead}
+                    isChecked={checked.has(email.id)}
+                    onCheck={() => toggleCheck(email.id)}
                     labelCtx={labelCtx}
                     buyingSignal={buyingSignals[email.id]}
                   />
@@ -141,6 +226,9 @@ export function EmailList({ emails, selectedId, onSelect, onToggleStar, folderNa
                   onToggleStar={(e) => { e.stopPropagation(); onToggleStar(email.id); }}
                   onArchive={onArchive}
                   onDelete={onDelete}
+                  onMarkRead={onMarkRead}
+                  isChecked={checked.has(email.id)}
+                  onCheck={() => toggleCheck(email.id)}
                   labelCtx={labelCtx}
                 />
               </div>

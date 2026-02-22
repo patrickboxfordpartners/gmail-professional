@@ -5,7 +5,17 @@ import { toast } from "sonner";
 
 const PAGE_SIZE = 50;
 
-const LIST_COLUMNS = "id, sender_id, recipient_id, sender_email, recipient_email, sender_name, recipient_name, subject, preview, folder, read, starred, has_attachment, labels, created_at, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)";
+export interface Attachment {
+  name: string;
+  size: number;
+  type: string;
+}
+
+export interface AttachmentPayload extends Attachment {
+  data: string; // base64
+}
+
+const LIST_COLUMNS = "id, sender_id, recipient_id, sender_email, recipient_email, sender_name, recipient_name, subject, preview, folder, read, starred, has_attachment, labels, created_at, opportunity_score, is_spam, business_classification, ai_summary, cc, bcc, attachments, sender:profiles!emails_sender_id_fkey(email, display_name), recipient:profiles!emails_recipient_id_fkey(email, display_name)";
 
 export interface Email {
   id: string;
@@ -20,6 +30,13 @@ export interface Email {
   folder: string;
   labels: string[];
   hasAttachment: boolean;
+  opportunityScore: number | null;
+  isSpam: boolean;
+  businessClassification: string | null;
+  aiSummary: string | null;
+  cc: string[];
+  bcc: string[];
+  attachments: Attachment[];
 }
 
 interface DbEmail {
@@ -39,6 +56,13 @@ interface DbEmail {
   has_attachment: boolean;
   labels: string[];
   created_at: string;
+  opportunity_score: number | null;
+  is_spam: boolean | null;
+  business_classification: string | null;
+  ai_summary: string | null;
+  cc: string | null;
+  bcc: string | null;
+  attachments: Attachment[] | null;
   sender: { email: string; display_name: string | null } | null;
   recipient: { email: string; display_name: string | null } | null;
 }
@@ -65,6 +89,13 @@ function mapDbEmail(row: DbEmail): Email {
     folder: row.folder,
     labels: row.labels || [],
     hasAttachment: row.has_attachment,
+    opportunityScore: row.opportunity_score ?? null,
+    isSpam: row.is_spam ?? false,
+    businessClassification: row.business_classification ?? null,
+    aiSummary: row.ai_summary ?? null,
+    cc: row.cc ? row.cc.split(",").map((s) => s.trim()).filter(Boolean) : [],
+    bcc: row.bcc ? row.bcc.split(",").map((s) => s.trim()).filter(Boolean) : [],
+    attachments: row.attachments ?? [],
   };
 }
 
@@ -189,7 +220,17 @@ export function useEmails() {
         setEmails((prev) =>
           prev.map((e) =>
             e.id === updated.id
-              ? { ...e, read: updated.read, starred: updated.starred, folder: updated.folder, labels: updated.labels || e.labels }
+              ? {
+                  ...e,
+                  read: updated.read,
+                  starred: updated.starred,
+                  folder: updated.folder,
+                  labels: updated.labels || e.labels,
+                  opportunityScore: updated.opportunity_score ?? e.opportunityScore,
+                  isSpam: updated.is_spam ?? e.isSpam,
+                  businessClassification: updated.business_classification ?? e.businessClassification,
+                  aiSummary: updated.ai_summary ?? e.aiSummary,
+                }
               : e
           )
         );
@@ -267,11 +308,53 @@ export function useEmails() {
     toast.success("Moved to trash");
   }, []);
 
-  const sendEmail = useCallback(async (to: string, subject: string, body: string, scheduledAt?: string) => {
+  const handleMarkUnread = useCallback(async (id: string) => {
+    await supabase.from("emails").update({ read: false }).eq("id", id);
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, read: false } : e)));
+  }, []);
+
+  const handleMarkRead = useCallback(async (id: string) => {
+    await supabase.from("emails").update({ read: true }).eq("id", id);
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, read: true } : e)));
+  }, []);
+
+  const handleBulkMarkRead = useCallback(async (ids: string[]) => {
+    await supabase.from("emails").update({ read: true }).in("id", ids);
+    setEmails((prev) => prev.map((e) => ids.includes(e.id) ? { ...e, read: true } : e));
+  }, []);
+
+  const handleBulkMarkUnread = useCallback(async (ids: string[]) => {
+    await supabase.from("emails").update({ read: false }).in("id", ids);
+    setEmails((prev) => prev.map((e) => ids.includes(e.id) ? { ...e, read: false } : e));
+  }, []);
+
+  const handleBulkArchive = useCallback(async (ids: string[]) => {
+    await supabase.from("emails").update({ folder: "archive" }).in("id", ids);
+    setEmails((prev) => prev.map((e) => ids.includes(e.id) ? { ...e, folder: "archive" } : e));
+    toast.success(`Archived ${ids.length} ${ids.length === 1 ? "email" : "emails"}`);
+  }, []);
+
+  const handleBulkDelete = useCallback(async (ids: string[]) => {
+    await supabase.from("emails").update({ folder: "trash" }).in("id", ids);
+    setEmails((prev) => prev.map((e) => ids.includes(e.id) ? { ...e, folder: "trash" } : e));
+    toast.success(`Moved ${ids.length} ${ids.length === 1 ? "email" : "emails"} to trash`);
+  }, []);
+
+  const handleMoveToFolder = useCallback(async (id: string, folder: string) => {
+    await supabase.from("emails").update({ folder }).eq("id", id);
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, folder } : e)));
+    toast.success(`Moved to ${folder}`);
+  }, []);
+
+  const sendEmail = useCallback(async (
+    to: string, subject: string, body: string,
+    scheduledAt?: string, cc?: string[], bcc?: string[],
+    attachments?: AttachmentPayload[]
+  ) => {
     if (!user) throw new Error("User not authenticated");
 
     const { data, error } = await supabase.functions.invoke("mailgun-send", {
-      body: { to, subject, body, scheduledAt },
+      body: { to, subject, body, scheduledAt, cc, bcc, attachments },
     });
 
     if (error) {
@@ -316,6 +399,13 @@ export function useEmails() {
     handleFolderChange,
     handleArchive,
     handleDelete,
+    handleMarkUnread,
+    handleMarkRead,
+    handleBulkMarkRead,
+    handleBulkMarkUnread,
+    handleBulkArchive,
+    handleBulkDelete,
+    handleMoveToFolder,
     sendEmail,
     loadMore,
     fetchEmailBody,

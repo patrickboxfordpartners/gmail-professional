@@ -15,6 +15,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -40,9 +43,12 @@ interface EmailReaderProps {
   labelCtx?: ReturnType<typeof useLabels>;
   aiCtx?: ReturnType<typeof useAIEmail>;
   crmCtx?: ReturnType<typeof useCRM>;
+  onMarkUnread?: (id: string) => void;
+  onDelete?: (id: string) => void;
+  onMoveToFolder?: (id: string, folder: string) => void;
 }
 
-export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBody, labelCtx, aiCtx, crmCtx }: EmailReaderProps) {
+export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBody, labelCtx, aiCtx, crmCtx, onMarkUnread, onDelete, onMoveToFolder }: EmailReaderProps) {
   const [linkedContacts, setLinkedContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
@@ -98,15 +104,11 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
   };
 
   const handleMarkAsUnread = () => {
-    toast.success("Marked as unread");
-  };
-
-  const handleMoveToFolder = () => {
-    toast.success("Moved to folder");
+    if (email && onMarkUnread) onMarkUnread(email.id);
   };
 
   const handleDelete = () => {
-    toast.success("Email deleted");
+    if (email && onDelete) onDelete(email.id);
   };
 
   return (
@@ -173,10 +175,23 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
               <MailOpen className="h-4 w-4 mr-2" />
               Mark as unread
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleMoveToFolder} className="cursor-pointer">
-              <Folder className="h-4 w-4 mr-2" />
-              Move to folder
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer">
+                <Folder className="h-4 w-4 mr-2" />
+                Move to folder
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {["inbox", "archive", "spam", "trash"].map((folder) => (
+                  <DropdownMenuItem
+                    key={folder}
+                    onClick={() => email && onMoveToFolder?.(email.id, folder)}
+                    className="cursor-pointer capitalize"
+                  >
+                    {folder}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleDelete} className="cursor-pointer text-destructive focus:text-destructive">
               <Trash2 className="h-4 w-4 mr-2" />
@@ -219,27 +234,30 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
             </div>
           </div>
 
-          {email.hasAttachment && (
-            <div className="mb-6 p-4 md:p-3.5 rounded-lg border border-divider bg-secondary/50 flex items-center gap-3 md:gap-2.5 shadow-stripe-sm">
-              <div className="h-10 w-10 md:h-8 md:w-8 rounded-md bg-accent flex items-center justify-center shrink-0">
-                <Paperclip className="h-4 w-4 md:h-3.5 md:w-3.5 text-accent-foreground" strokeWidth={2} />
-              </div>
-              <div>
-                <p className="text-[14px] md:text-[13px] font-medium text-foreground">Attachment</p>
-                <p className="text-[12px] md:text-[11px] text-muted-foreground">1 file attached</p>
-              </div>
+          {email.attachments.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {email.attachments.map((att, i) => (
+                <div key={i} className="p-3.5 rounded-lg border border-divider bg-secondary/50 flex items-center gap-3 shadow-stripe-sm">
+                  <div className="h-8 w-8 rounded-md bg-accent flex items-center justify-center shrink-0">
+                    <Paperclip className="h-3.5 w-3.5 text-accent-foreground" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-foreground truncate">{att.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{(att.size / 1024).toFixed(0)} KB · {att.type || "file"}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* Temporarily hidden - AI features unavailable due to API quota limits */}
-          {/* {aiCtx && (
+          {aiCtx && (
             <AISummaryPanel
-              summary={aiCtx.summary}
+              summary={aiCtx.summary || email.aiSummary || null}
               loading={aiCtx.summarizing}
               onRequest={() => aiCtx.summarize(email)}
               onClear={aiCtx.clearSummary}
             />
-          )} */}
+          )}
 
           <div
             className="text-[15px] md:text-[14px] leading-relaxed md:leading-relaxed bg-white text-[#1a1a1a] rounded-lg overflow-x-auto break-words [&_a]:text-[#0066cc] [&_a]:underline [&_a]:underline-offset-2 [&_blockquote]:border-l-2 [&_blockquote]:border-l-[#0066cc]/30 [&_blockquote]:bg-[#f5f5f5] [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:rounded-r-lg [&_blockquote]:text-[#555] [&_ul]:space-y-1.5 [&_li]:text-[#2a2a2a] [&_p]:mb-4 [&_table]:max-w-full [&_table]:overflow-x-auto [&_table]:block [&_img]:max-w-full [&_img]:h-auto [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_div]:max-w-full"
@@ -250,18 +268,22 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
 
       <div className="border-t border-divider p-3 md:p-4">
         <div className="max-w-3xl mx-auto">
-          {/* Temporarily hidden - AI features unavailable due to API quota limits */}
-          {/* {aiCtx && (
+          {aiCtx && (
             <SmartReplyChips
               replies={aiCtx.smartReplies}
               loading={aiCtx.replying}
               onRequest={() => aiCtx.getSmartReplies(email)}
               onSelect={(reply) => {
-                navigator.clipboard.writeText(reply);
-                toast.success("Reply copied to clipboard");
+                if (onReply) {
+                  const replySubject = email.subject.startsWith("Re: ") ? email.subject : `Re: ${email.subject}`;
+                  onReply(email.from.email, replySubject, reply);
+                } else {
+                  navigator.clipboard.writeText(reply);
+                  toast.success("Reply copied to clipboard");
+                }
               }}
             />
-          )} */}
+          )}
           <div
             onClick={handleReply}
             className="min-h-[48px] md:min-h-0 border border-input rounded-lg px-4 py-3 text-[14px] md:text-[13px] text-muted-foreground cursor-text hover:border-ring/50 hover:shadow-stripe-sm active:bg-secondary/50 transition-all duration-200 flex items-center"

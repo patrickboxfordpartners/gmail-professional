@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Star, Paperclip, Archive, Trash2 } from "lucide-react";
+import { Star, Paperclip, Archive, Trash2, MailOpen, Check } from "lucide-react";
 import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
 import { LabelBadge } from "./LabelComponents";
@@ -14,6 +14,9 @@ interface EmailListItemProps {
   onToggleStar: (e: React.MouseEvent) => void;
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onMarkRead?: (id: string) => void;
+  isChecked?: boolean;
+  onCheck?: () => void;
   labelCtx?: ReturnType<typeof useLabels>;
   buyingSignal?: { urgency: string; reason: string };
 }
@@ -34,7 +37,7 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-export const EmailListItem = React.memo(function EmailListItem({ email, isSelected, onSelect, onToggleStar, onArchive, onDelete, labelCtx, buyingSignal }: EmailListItemProps) {
+export const EmailListItem = React.memo(function EmailListItem({ email, isSelected, onSelect, onToggleStar, onArchive, onDelete, onMarkRead, isChecked = false, onCheck, labelCtx, buyingSignal }: EmailListItemProps) {
   const emailLabels = labelCtx?.getLabelsForEmail(email.id) || [];
   const isMobile = useIsMobile();
   const [swipeX, setSwipeX] = useState(0);
@@ -154,8 +157,27 @@ export const EmailListItem = React.memo(function EmailListItem({ email, isSelect
           getBackgroundColor()
         )}
       >
-      <div className="mt-0.5 h-11 w-11 md:h-9 md:w-9 rounded-full bg-avatar flex items-center justify-center shrink-0 shadow-stripe-sm">
-        <span className="text-[12px] md:text-[11px] font-bold text-avatar-foreground tracking-wide">{getInitials(email.from.name)}</span>
+      <div
+        className="relative mt-0.5 h-11 w-11 md:h-9 md:w-9 shrink-0 cursor-pointer"
+        onClick={(e) => { e.stopPropagation(); onCheck?.(); }}
+      >
+        <div className={cn(
+          "h-full w-full rounded-full bg-avatar flex items-center justify-center shadow-stripe-sm transition-opacity duration-150",
+          isChecked ? "opacity-0" : "md:group-hover:opacity-0"
+        )}>
+          <span className="text-[12px] md:text-[11px] font-bold text-avatar-foreground tracking-wide">{getInitials(email.from.name)}</span>
+        </div>
+        <div className={cn(
+          "absolute inset-0 flex items-center justify-center transition-opacity duration-150",
+          isChecked ? "opacity-100" : "opacity-0 md:group-hover:opacity-100"
+        )}>
+          <div className={cn(
+            "h-[18px] w-[18px] md:h-[16px] md:w-[16px] rounded-sm border-2 flex items-center justify-center transition-colors",
+            isChecked ? "bg-primary border-primary" : "border-muted-foreground/50 bg-background"
+          )}>
+            {isChecked && <Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} />}
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 min-w-0 space-y-1 md:space-y-0.5">
@@ -175,8 +197,18 @@ export const EmailListItem = React.memo(function EmailListItem({ email, isSelect
             {email.subject}
           </span>
           {email.hasAttachment && <Paperclip className="h-3.5 w-3.5 md:h-3 md:w-3 text-muted-foreground shrink-0" strokeWidth={2} />}
-          {/* Temporarily hidden - AI features unavailable */}
-          {/* {buyingSignal && <BuyingSignalBadge urgency={buyingSignal.urgency} reason={buyingSignal.reason} />} */}
+          {email.opportunityScore != null && email.opportunityScore >= 40 && (
+            <span className={cn(
+              "shrink-0 text-[10px] font-semibold tabular-nums px-1.5 py-0.5 rounded-full",
+              email.opportunityScore >= 75
+                ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400"
+                : email.opportunityScore >= 55
+                ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400"
+                : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400"
+            )}>
+              {email.opportunityScore}
+            </span>
+          )}
         </div>
         <p className="text-[13px] md:text-[12px] text-muted-foreground/80 truncate leading-relaxed">{email.preview}</p>
         {emailLabels.length > 0 && (
@@ -188,6 +220,16 @@ export const EmailListItem = React.memo(function EmailListItem({ email, isSelect
         )}
       </div>
 
+      {!email.read && onMarkRead && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onMarkRead(email.id); }}
+          className="mt-1 shrink-0 min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1 flex items-center justify-center rounded-md md:opacity-0 md:group-hover:opacity-100 transition-all duration-150 hover:bg-secondary active:bg-secondary/80"
+          aria-label="Mark as read"
+          title="Mark as read"
+        >
+          <MailOpen className="h-4 w-4 md:h-3.5 md:w-3.5 text-muted-foreground" strokeWidth={1.8} />
+        </button>
+      )}
       <button
         onClick={onToggleStar}
         className="mt-1 shrink-0 min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 md:p-1 flex items-center justify-center rounded-md md:opacity-0 md:group-hover:opacity-100 transition-all duration-150 hover:bg-secondary active:bg-secondary/80"

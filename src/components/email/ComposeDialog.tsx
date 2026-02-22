@@ -1,4 +1,4 @@
-import { X, Minus, Maximize2, Send, Sparkles, Loader2, Clock, FileText, Pen, ChevronDown, Undo2 } from "lucide-react";
+import { X, Minus, Maximize2, Send, Sparkles, Loader2, Clock, FileText, Pen, ChevronDown, Undo2, Paperclip } from "lucide-react";
 import DOMPurify from "dompurify";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -6,11 +6,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { useAIEmail } from "@/hooks/useAIEmail";
 import type { useSignatures } from "@/hooks/useSignatures";
 import type { useTemplates } from "@/hooks/useTemplates";
+import type { AttachmentPayload } from "@/hooks/useEmails";
 
 interface ComposeDialogProps {
   open: boolean;
   onClose: () => void;
-  onSend: (to: string, subject: string, body: string, scheduledAt?: string) => Promise<void>;
+  onSend: (to: string, subject: string, body: string, scheduledAt?: string, cc?: string[], bcc?: string[], attachments?: AttachmentPayload[]) => Promise<void>;
   aiCtx?: ReturnType<typeof useAIEmail>;
   sigCtx?: ReturnType<typeof useSignatures>;
   tplCtx?: ReturnType<typeof useTemplates>;
@@ -21,6 +22,12 @@ interface ComposeDialogProps {
 
 export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, initialTo, initialSubject, initialBody }: ComposeDialogProps) {
   const [to, setTo] = useState("");
+  const [cc, setCc] = useState("");
+  const [bcc, setBcc] = useState("");
+  const [showCc, setShowCc] = useState(false);
+  const [showBcc, setShowBcc] = useState(false);
+  const [attachments, setAttachments] = useState<AttachmentPayload[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
@@ -73,6 +80,9 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
       ? new Date(`${scheduleDate}T${scheduleTime}`).toISOString()
       : undefined;
 
+    const ccList = cc.split(",").map((s) => s.trim()).filter(Boolean);
+    const bccList = bcc.split(",").map((s) => s.trim()).filter(Boolean);
+
     // Undo send: 5 second delay
     if (!scheduledAt) {
       undoRef.current = { to, subject, body: fullBody };
@@ -93,7 +103,7 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
         setUndoCountdown(0);
         setSending(true);
         try {
-          await onSend(undoRef.current!.to, undoRef.current!.subject, undoRef.current!.body);
+          await onSend(undoRef.current!.to, undoRef.current!.subject, undoRef.current!.body, undefined, ccList, bccList, attachments);
           resetForm();
           onClose();
           toast.success("Email sent");
@@ -113,10 +123,10 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
     // Scheduled send - no undo
     setSending(true);
     try {
-      await onSend(to, subject, fullBody, scheduledAt);
+      await onSend(to, subject, fullBody, scheduledAt, ccList, bccList, attachments);
       resetForm();
       onClose();
-      toast.success(scheduledAt ? "Email scheduled" : "Email sent");
+      toast.success("Email scheduled");
     } catch (e) {
       console.error("Send error:", e);
       toast.error(e instanceof Error ? e.message : "Failed to send");
@@ -136,8 +146,10 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
   };
 
   const resetForm = () => {
-    setTo(""); setSubject(""); setBody("");
+    setTo(""); setCc(""); setBcc(""); setSubject(""); setBody("");
+    setShowCc(false); setShowBcc(false);
     setShowSchedule(false); setScheduleDate(""); setScheduleTime("");
+    setAttachments([]);
   };
 
   const handleAiAssist = async () => {
@@ -150,6 +162,20 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
     setSubject(tpl.subject);
     setBody(tpl.body.replace(/<[^>]*>/g, ""));
     setShowTemplates(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target?.result as string;
+        const data = dataUrl.split(",")[1]; // strip data:type;base64,
+        setAttachments((prev) => [...prev, { name: file.name, size: file.size, type: file.type, data }]);
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = "";
   };
 
   const handleSaveTemplate = async () => {
@@ -206,9 +232,37 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
         <div className="flex items-center border-b border-divider px-3 md:px-4">
           <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">To</span>
           <input type="email" value={to} onChange={(e) => setTo(e.target.value)}
-            placeholder="recipient@boxfordpartners.com"
+            placeholder="recipient@example.com"
             className="flex-1 py-3 md:py-2.5 text-[14px] md:text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
+          {!showCc && (
+            <button onClick={() => setShowCc(true)} className="text-[11px] text-muted-foreground hover:text-foreground px-1 transition-colors">Cc</button>
+          )}
+          {!showBcc && (
+            <button onClick={() => setShowBcc(true)} className="text-[11px] text-muted-foreground hover:text-foreground px-1 transition-colors">Bcc</button>
+          )}
         </div>
+        {showCc && (
+          <div className="flex items-center border-b border-divider px-3 md:px-4">
+            <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">Cc</span>
+            <input type="text" value={cc} onChange={(e) => setCc(e.target.value)}
+              placeholder="cc@example.com, another@example.com"
+              className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
+            <button onClick={() => { setShowCc(false); setCc(""); }} className="p-1 rounded hover:bg-secondary">
+              <X className="h-3 w-3 text-muted-foreground" />
+            </button>
+          </div>
+        )}
+        {showBcc && (
+          <div className="flex items-center border-b border-divider px-3 md:px-4">
+            <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">Bcc</span>
+            <input type="text" value={bcc} onChange={(e) => setBcc(e.target.value)}
+              placeholder="bcc@example.com"
+              className="flex-1 py-2.5 text-[13px] bg-transparent outline-none text-foreground placeholder:text-muted-foreground/40" />
+            <button onClick={() => { setShowBcc(false); setBcc(""); }} className="p-1 rounded hover:bg-secondary">
+              <X className="h-3 w-3 text-muted-foreground" />
+            </button>
+          </div>
+        )}
         <div className="flex items-center border-b border-divider px-3 md:px-4">
           <span className="text-[13px] md:text-[12px] text-muted-foreground font-medium w-10 md:w-8">Sub</span>
           <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)}
@@ -283,6 +337,22 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
               Draft
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Attachment list */}
+      {attachments.length > 0 && (
+        <div className="px-4 py-2 border-b border-divider space-y-1 animate-fade-in">
+          {attachments.map((att, i) => (
+            <div key={i} className="flex items-center gap-2 text-[12px]">
+              <Paperclip className="h-3 w-3 text-muted-foreground shrink-0" strokeWidth={2} />
+              <span className="flex-1 truncate text-foreground">{att.name}</span>
+              <span className="text-muted-foreground whitespace-nowrap tabular-nums">{(att.size / 1024).toFixed(0)} KB</span>
+              <button onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))} className="p-0.5 rounded hover:bg-secondary">
+                <X className="h-3 w-3 text-muted-foreground" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -379,6 +449,15 @@ export function ComposeDialog({ open, onClose, onSend, aiCtx, sigCtx, tplCtx, in
             <Sparkles className="h-4 w-4 md:h-3.5 md:w-3.5" />
           </button>
         )}
+
+        <input type="file" ref={fileInputRef} multiple onChange={handleFileSelect} className="hidden" />
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 flex items-center justify-center md:gap-1 md:px-2.5 md:py-[7px] rounded-md text-[11px] font-medium hover:bg-secondary transition-all active:scale-95 text-muted-foreground"
+          title="Attach files"
+        >
+          <Paperclip className="h-4 w-4 md:h-3.5 md:w-3.5" strokeWidth={2} />
+        </button>
       </div>
     </div>
   );

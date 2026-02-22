@@ -8,6 +8,7 @@ export function useAIEmail() {
   const [replying, setReplying] = useState(false);
   const [composing, setComposing] = useState(false);
   const [categorizing, setCategorizing] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   // Per-email caches
   const summaryCache = useRef<Map<string, string>>(new Map());
@@ -118,6 +119,29 @@ export function useAIEmail() {
     setActiveEmailId(id);
   }, []);
 
+  // Batch-process emails through the 4-stage xAI pipeline.
+  // Results are written to DB by the edge function; realtime picks up the changes.
+  const processEmails = useCallback(async (emails: Email[]) => {
+    const unprocessed = emails.filter((e) => e.opportunityScore == null && !e.isSpam);
+    if (unprocessed.length === 0) return;
+
+    setProcessing(true);
+    try {
+      const payload = unprocessed.slice(0, 10).map((e) => ({
+        id: e.id,
+        subject: e.subject,
+        from: e.from.name,
+        preview: e.preview,
+        body: e.body ? e.body.replace(/<[^>]*>/g, "").slice(0, 500) : undefined,
+      }));
+      await supabase.functions.invoke("ai-email", { body: { action: "process", emails: payload } });
+    } catch (e: any) {
+      console.error("processEmails error:", e);
+    } finally {
+      setProcessing(false);
+    }
+  }, []);
+
   // Expose cached results for the active email
   const summary = useMemo(
     () => (activeEmailId ? summaryCache.current.get(activeEmailId) ?? null : null),
@@ -150,6 +174,7 @@ export function useAIEmail() {
     getSmartReplies, smartReplies, replying, clearReplies,
     composeAssist, composing,
     detectBuyingSignals, buyingSignals, categorizing,
+    processEmails, processing,
     setActiveEmail,
   };
 }

@@ -47,7 +47,7 @@ serve(async (req) => {
     const serviceClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // 2. Parse request body
-    const { to, subject, body, scheduledAt } = await req.json();
+    const { to, subject, body, scheduledAt, cc, bcc, attachments } = await req.json();
     if (!to || !subject) {
       return new Response(
         JSON.stringify({ error: "Missing required fields: to, subject" }),
@@ -118,9 +118,13 @@ serve(async (req) => {
       subject: subject || "",
       body: body || "",
       preview,
-      folder: "sent", // Sent emails go to sent folder for the sender
-      read: true, // Sender has already "read" their own sent email
+      folder: "sent",
+      read: true,
       starred: false,
+      cc: (cc as string[] | undefined)?.join(", ") || null,
+      bcc: (bcc as string[] | undefined)?.join(", ") || null,
+      attachments: (attachments as Array<{ name: string; size: number; type: string }> | undefined)
+        ?.map((a) => ({ name: a.name, size: a.size, type: a.type })) ?? [],
     };
 
     if (scheduledAt) {
@@ -171,6 +175,25 @@ serve(async (req) => {
     form.append("to", to);
     form.append("subject", subject || "(no subject)");
     form.append("html", body || "");
+
+    // Scheduled delivery
+    if (scheduledAt) {
+      form.append("o:deliverytime", new Date(scheduledAt).toUTCString());
+    }
+    // Cc / Bcc
+    if ((cc as string[] | undefined)?.length) {
+      form.append("cc", (cc as string[]).join(", "));
+    }
+    if ((bcc as string[] | undefined)?.length) {
+      form.append("bcc", (bcc as string[]).join(", "));
+    }
+    // Attachments — base64 decoded and appended as multipart
+    for (const att of (attachments as Array<{ name: string; type: string; data: string }> | undefined) ?? []) {
+      const binary = atob(att.data);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      form.append("attachment", new Blob([bytes], { type: att.type }), att.name);
+    }
 
     const mgResponse = await fetch(
       `https://api.mailgun.net/v3/${MAILGUN_DOMAIN}/messages`,

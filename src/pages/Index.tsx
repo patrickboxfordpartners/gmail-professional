@@ -25,7 +25,8 @@ const Index = () => {
   const {
     emails, selectedEmail, selectedId, activeFolder, search, loading, folderCounts, hasMore,
     setSearch, handleSelect, clearSelection, handleToggleStar, handleFolderChange, sendEmail,
-    loadMore, fetchEmailBody, handleArchive, handleDelete,
+    loadMore, fetchEmailBody, handleArchive, handleDelete, handleMarkUnread, handleMarkRead,
+    handleBulkMarkRead, handleBulkMarkUnread, handleBulkArchive, handleBulkDelete, handleMoveToFolder,
   } = useEmails();
   const labelCtx = useLabels();
   const aiCtx = useAIEmail();
@@ -61,13 +62,28 @@ const Index = () => {
     [emails, noiseFilter]
   );
 
-  // Auto-detect buying signals when inbox emails load - TEMPORARILY DISABLED
-  // useEffect(() => {
-  //   if (activeFolder === "inbox" && emails.length > 0 && !aiCtx.categorizing) {
-  //     aiCtx.detectBuyingSignals(emails);
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [activeFolder, emails.length]);
+  // Merge DB-backed opportunity scores with in-memory buying signals
+  const buyingSignals = useMemo(() => {
+    if (activeFolder !== "inbox") return aiCtx.buyingSignals;
+    const signals: Record<string, { urgency: string; reason: string }> = { ...aiCtx.buyingSignals };
+    for (const e of emails) {
+      if ((e.opportunityScore ?? 0) >= 60) {
+        signals[e.id] = {
+          urgency: (e.opportunityScore ?? 0) >= 80 ? "high" : "medium",
+          reason: e.businessClassification || "Opportunity detected",
+        };
+      }
+    }
+    return signals;
+  }, [activeFolder, emails, aiCtx.buyingSignals]);
+
+  // Run 4-stage AI pipeline on unprocessed inbox emails
+  useEffect(() => {
+    if (activeFolder === "inbox" && emails.length > 0 && !aiCtx.processing) {
+      aiCtx.processEmails(emails);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeFolder, emails.length]);
 
   const initials = user?.user_metadata?.display_name
     ? user.user_metadata.display_name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase()
@@ -206,7 +222,7 @@ const Index = () => {
             loading={loading}
             fullWidth={isMobile}
             labelCtx={labelCtx}
-            buyingSignals={activeFolder === "inbox" ? aiCtx.buyingSignals : {}}
+            buyingSignals={buyingSignals}
             inactiveSenders={activeFolder === "inbox" ? inactiveSenders : new Set()}
             onDismissSender={noiseFilter.dismissSuggestion}
             onKeepSender={noiseFilter.recordInteraction}
@@ -217,6 +233,11 @@ const Index = () => {
             onRefresh={() => window.location.reload()}
             onArchive={handleArchive}
             onDelete={handleDelete}
+            onMarkRead={handleMarkRead}
+            onBulkMarkRead={handleBulkMarkRead}
+            onBulkMarkUnread={handleBulkMarkUnread}
+            onBulkArchive={handleBulkArchive}
+            onBulkDelete={handleBulkDelete}
           />
         )}
 
@@ -230,6 +251,9 @@ const Index = () => {
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}
+            onMarkUnread={handleMarkUnread}
+            onDelete={handleDelete}
+            onMoveToFolder={handleMoveToFolder}
           />
         ) : !isMobile ? (
           <EmailReader
@@ -240,6 +264,9 @@ const Index = () => {
             labelCtx={labelCtx}
             aiCtx={aiCtx}
             crmCtx={crmCtx}
+            onMarkUnread={handleMarkUnread}
+            onDelete={handleDelete}
+            onMoveToFolder={handleMoveToFolder}
           />
         ) : null}
       </div>

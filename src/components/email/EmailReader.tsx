@@ -1,4 +1,4 @@
-import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail, MailOpen, Folder, Trash2 } from "lucide-react";
+import { Reply, ReplyAll, Forward, MoreHorizontal, Star, Paperclip, ArrowLeft, Mail, MailOpen, Folder, Trash2, UserPlus } from "lucide-react";
 import DOMPurify from "dompurify";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -6,6 +6,7 @@ import type { Email } from "@/hooks/useEmails";
 import type { useLabels } from "@/hooks/useLabels";
 import type { useAIEmail } from "@/hooks/useAIEmail";
 import type { useCRM, Contact } from "@/hooks/useCRM";
+import { supabase } from "@/integrations/supabase/client";
 import { LabelBadge, LabelPicker } from "./LabelComponents";
 import { AISummaryPanel, SmartReplyChips } from "./AIFeatures";
 import { ContactLinker } from "./CRMComponents";
@@ -111,6 +112,18 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
     if (email && onDelete) onDelete(email.id);
   };
 
+  const handleSaveToCRM = async () => {
+    if (!email) return;
+    await supabase.functions.invoke("crm-sync-contact", {
+      body: {
+        source: "mailboxford",
+        name: email.from.name,
+        email: email.from.email,
+      },
+    });
+    toast.success("Contact saved to CRM");
+  };
+
   return (
     <div className="flex-1 min-w-0 flex flex-col h-full animate-fade-in bg-background">
       <div className="flex items-center gap-1 md:gap-0.5 px-2 md:px-4 py-2.5 border-b border-divider">
@@ -127,6 +140,9 @@ export function EmailReader({ email, onToggleStar, onBack, onReply, fetchEmailBo
         </button>
         <button onClick={handleForward} className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 group" title="Forward">
           <Forward className="h-5 w-5 md:h-4 md:w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
+        </button>
+        <button onClick={handleSaveToCRM} className="min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0 md:p-2 flex items-center justify-center rounded-md hover:bg-secondary active:bg-secondary/80 transition-all duration-150 group" title="Save to CRM">
+          <UserPlus className="h-5 w-5 md:h-4 md:w-4 text-muted-foreground group-hover:text-foreground transition-colors" strokeWidth={1.8} />
         </button>
         <div className="flex-1" />
         {labelCtx && (
